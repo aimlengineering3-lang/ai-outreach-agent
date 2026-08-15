@@ -2,3 +2,4 @@ python-dotenv==1.0.1
 sqlalchemy==2.0.44
 httpx==0.27.2
 beautifulsoup4==4.12.3
+dnspython==2.7.0
