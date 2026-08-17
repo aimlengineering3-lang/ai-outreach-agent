@@ -9,3 +9,4 @@ data/processed/
 *.sqlite3
 .vscode/
 *.log
+secrets/
