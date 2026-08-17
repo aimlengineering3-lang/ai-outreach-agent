@@ -7,3 +7,5 @@ dnspython==2.7.0
 playwright==1.62.0
 google-auth-oauthlib==1.2.1
 google-api-python-client==2.149.0
+timezonefinder==6.5.7
+pytz==2024.2
