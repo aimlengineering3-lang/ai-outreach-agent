@@ -91,6 +91,17 @@ def analyze_website(url: str, timeout: float = 10.0) -> WebsiteFacts:
     # --- Phone numbers & emails (dedup while preserving order) ---
     facts.phone_numbers = list(dict.fromkeys(PHONE_PATTERN.findall(visible_text)))
     facts.emails = list(dict.fromkeys(EMAIL_PATTERN.findall(visible_text)))
+    # mailto: links are a more reliable source than visible text — many
+    # sites put the email only in a mailto href (behind a "Contact" icon
+    # or button), not as plain visible text.
+    mailto_emails = [
+        link["href"].replace("mailto:", "").split("?")[0].strip()
+        for link in soup.find_all("a", href=True)
+        if link["href"].lower().startswith("mailto:")
+    ]
+    for email in mailto_emails:
+        if email and email not in facts.emails:
+            facts.emails.append(email)
 
     # --- Social links ---
     for link in soup.find_all("a", href=True):
@@ -113,3 +124,34 @@ def analyze_website(url: str, timeout: float = 10.0) -> WebsiteFacts:
 if __name__ == "__main__":
     result = analyze_website("https://www.example.com")
     print(result)
+    
+COMMON_CONTACT_PATHS = ["/contact", "/contact-us", "/contact-us/", "/about", "/about-us"]
+
+
+def analyze_website_with_contact_fallback(base_url: str, timeout: float = 10.0) -> WebsiteFacts:
+    """
+    Runs analyze_website on the homepage. If no email was found there,
+    tries a few common contact-page paths and merges any email found —
+    many businesses only list contact info on a dedicated page, not
+    the homepage.
+    """
+    facts = analyze_website(base_url, timeout=timeout)
+
+    if facts.emails or not facts.fetch_succeeded:
+        return facts
+
+    base_url_clean = base_url.rstrip("/")
+
+    for path in COMMON_CONTACT_PATHS:
+        try:
+            sub_facts = analyze_website(base_url_clean + path, timeout=timeout)
+        except Exception:
+            continue
+
+        if sub_facts.fetch_succeeded and sub_facts.emails:
+            facts.emails = sub_facts.emails
+            if not facts.phone_numbers:
+                facts.phone_numbers = sub_facts.phone_numbers
+            break
+
+    return facts

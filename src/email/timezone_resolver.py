@@ -2,7 +2,7 @@
 Resolves a US city/state to an IANA timezone and checks whether the
 current time falls within the configured sending window there.
 """
-
+import os
 from datetime import datetime
 from typing import Optional
 
@@ -53,10 +53,9 @@ def is_within_send_window(
     window_start_hour: int = 9,
     window_end_hour: int = 17,
 ) -> bool:
-    """
-    Returns True if it's currently within the sending window (local time
-    for that timezone). Window is in 24h format, e.g. 9-17 = 9am-5pm.
-    """
+    if os.getenv("IGNORE_SEND_WINDOW", "false").lower() == "true":
+        return True
+
     tz = pytz.timezone(timezone_str)
     local_now = datetime.now(tz)
     return window_start_hour <= local_now.hour < window_end_hour
