@@ -34,7 +34,7 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
 
     leads = (
         session.query(Lead)
-        .filter(Lead.status.in_(["QUEUED", "NO_REPLY"]))
+        .filter(Lead.status.in_(["QUEUED", "CONTACTED", "NO_REPLY"]))
         .all()
     )
 
@@ -47,8 +47,9 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
             due.append(ScheduledAction(lead_id=lead.id, action_type="SENT"))
             continue
 
-        # lead.status == "NO_REPLY": check how long since last event to
-        # decide whether followup_1 or followup_2 is due.
+        # lead.status is CONTACTED (awaiting followup_1) or NO_REPLY
+        # (followup_1 sent, awaiting followup_2) -> check how long since
+        # last event to decide whether followup_1 or followup_2 is due.
         last_event = (
             session.query(EmailEvent)
             .filter(EmailEvent.lead_id == lead.id, EmailEvent.campaign_id == campaign.id)

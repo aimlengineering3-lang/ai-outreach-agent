@@ -14,8 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import json
-from datetime import datetime
-
+from datetime import datetime, timezone
 import httpx
 
 from src.db.session import SessionLocal, init_db
@@ -114,16 +113,27 @@ def research_lead(session, lead: Lead) -> bool:
         lead.email = candidate_email
         lead.email_status = validation.status
 
-    research = LeadResearch(
-        lead_id=lead.id,
-        meta_pixel=tech.meta_pixel,
-        google_analytics=(tech.google_analytics == "PRESENT"),
-        gtm=(tech.gtm == "PRESENT"),
-        capi_signal="unknown",
-        social_links=json.dumps({"facebook": facts.facebook_url, "instagram": facts.instagram_url}),
-        observations=json.dumps(select_observations(facts)),
-    )
-    session.add(research)
+        existing_research = session.query(LeadResearch).filter(LeadResearch.lead_id == lead.id).first()
+    if existing_research:
+        # Re-research: update in place rather than inserting a duplicate
+        # row, since a Lead has exactly one current research record.
+        existing_research.meta_pixel = tech.meta_pixel
+        existing_research.google_analytics = (tech.google_analytics == "PRESENT")
+        existing_research.gtm = (tech.gtm == "PRESENT")
+        existing_research.social_links = json.dumps({"facebook": facts.facebook_url, "instagram": facts.instagram_url})
+        existing_research.observations = json.dumps(select_observations(facts))
+        existing_research.researched_at = datetime.now(timezone.utc)
+    else:
+        research = LeadResearch(
+            lead_id=lead.id,
+            meta_pixel=tech.meta_pixel,
+            google_analytics=(tech.google_analytics == "PRESENT"),
+            gtm=(tech.gtm == "PRESENT"),
+            capi_signal="unknown",
+            social_links=json.dumps({"facebook": facts.facebook_url, "instagram": facts.instagram_url}),
+            observations=json.dumps(select_observations(facts)),
+        )
+        session.add(research)
 
     try:
         lead.status = transition(LeadStatus(lead.status), LeadStatus.RESEARCHED).value
@@ -252,12 +262,18 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
         event = EmailEvent(
             lead_id=lead.id, campaign_id=campaign.id, sender_account_id=sender_account.id,
             event_type=action.action_type, template_used_id=template.id,
-            scheduled_for=datetime.utcnow(), sent_at=datetime.utcnow(),
+            scheduled_for=datetime.now(timezone.utc), sent_at=datetime.utcnow(),
             notes=json.dumps({"test_mode": send_result.get("test_mode"), "message_id": send_result.get("message_id")}),
         )
         session.add(event)
 
-        new_status = LeadStatus.CONTACTED if action.action_type == "SENT" else LeadStatus.NO_REPLY
+        if action.action_type == "SENT":
+            new_status = LeadStatus.CONTACTED
+        elif action.action_type == "FOLLOWUP1":
+            new_status = LeadStatus.NO_REPLY
+        else:  # FOLLOWUP2
+            new_status = LeadStatus.COMPLETED
+
         try:
             lead.status = transition(LeadStatus(lead.status), new_status).value
         except InvalidTransitionError:

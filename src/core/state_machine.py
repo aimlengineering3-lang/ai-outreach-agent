@@ -38,7 +38,7 @@ ALLOWED_TRANSITIONS: dict[LeadStatus, set[LeadStatus]] = {
         LeadStatus.REPLIED, LeadStatus.NO_REPLY, LeadStatus.BOUNCED, LeadStatus.SUPPRESSED,
     },
     LeadStatus.NO_REPLY: {
-        LeadStatus.FOLLOWUP_1, LeadStatus.REPLIED, LeadStatus.SUPPRESSED,
+        LeadStatus.COMPLETED, LeadStatus.REPLIED, LeadStatus.SUPPRESSED,
     },
     LeadStatus.FOLLOWUP_1: {
         LeadStatus.REPLIED, LeadStatus.NO_REPLY, LeadStatus.BOUNCED, LeadStatus.SUPPRESSED,

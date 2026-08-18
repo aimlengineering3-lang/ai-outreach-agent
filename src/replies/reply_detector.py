@@ -9,8 +9,7 @@ function into something the pipeline actually uses.
 """
 
 import base64
-from datetime import datetime
-
+from datetime import datetime, timezone
 from googleapiclient.discovery import build
 from sqlalchemy.orm import Session
 
@@ -95,8 +94,8 @@ def check_for_replies(session: Session, campaign: Campaign, max_results: int = 2
             campaign_id=campaign.id,
             sender_account_id=1,  # TODO: resolve properly once multi-account routing exists
             event_type="REPLY",
-            scheduled_for=datetime.utcnow(),
-            sent_at=datetime.utcnow(),
+            scheduled_for=datetime.now(timezone.utc),
+            sent_at=datetime.now(timezone.utc),
             notes=f"category={category}",
         )
         session.add(event)

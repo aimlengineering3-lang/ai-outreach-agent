@@ -7,8 +7,9 @@ Python class. SQLAlchemy translates class attributes into SQL columns,
 and Python objects into database rows, automatically.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
+
 from sqlalchemy import (
     Integer,
     String,
@@ -17,6 +18,10 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class Base(DeclarativeBase):
@@ -45,7 +50,7 @@ class Lead(Base):
     email_status: Mapped[str] = mapped_column(String, default="unknown")  # valid/invalid/unknown
     contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # never fabricated
     source: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # google_search/maps/manual
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     status: Mapped[str] = mapped_column(String, default="NEW")  # NEW/RESEARCHED/QUEUED/CONTACTED/...
 
     # One lead has AT MOST one research record. back_populates keeps both
@@ -79,7 +84,7 @@ class LeadResearch(Base):
     capi_signal: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # yes/no/unknown
     social_links: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # stored as JSON string
     observations: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # JSON string, LLM-selected facts
-    researched_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    researched_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     lead: Mapped["Lead"] = relationship(back_populates="research")
 
@@ -100,7 +105,7 @@ class Campaign(Base):
     status: Mapped[str] = mapped_column(String, default="PAUSED")  # ACTIVE/PAUSED
     followup1_delay_days: Mapped[int] = mapped_column(Integer, default=1)
     followup2_delay_days: Mapped[int] = mapped_column(Integer, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     templates: Mapped[List["CampaignTemplate"]] = relationship(
         back_populates="campaign", cascade="all, delete-orphan"
@@ -123,7 +128,7 @@ class CampaignTemplate(Base):
     campaign_id: Mapped[int] = mapped_column(ForeignKey("campaigns.id"), nullable=False)
     variant: Mapped[str] = mapped_column(String, nullable=False)  # pixel_found/pixel_missing/followup1/...
     body: Mapped[str] = mapped_column(String, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     campaign: Mapped["Campaign"] = relationship(back_populates="templates")
     email_events: Mapped[List["EmailEvent"]] = relationship(back_populates="template_used")
@@ -175,7 +180,7 @@ class SenderAccount(Base):
     bounce_count_7d: Mapped[int] = mapped_column(Integer, default=0)
     spam_complaint_count_7d: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String, default="ACTIVE")  # ACTIVE/THROTTLED/PAUSED
-    last_reset_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_reset_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     def __repr__(self) -> str:
         return f"<SenderAccount email={self.email!r} status={self.status}>"
@@ -190,7 +195,7 @@ class SuppressionList(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False)
     reason: Mapped[str] = mapped_column(String, nullable=False)  # unsubscribe/manual/bounce_hard
-    added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     permanent: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def __repr__(self) -> str:
