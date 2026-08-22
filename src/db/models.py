@@ -47,7 +47,8 @@ class Lead(Base):
     timezone: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # IANA, e.g. America/Chicago
     website: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    email_status: Mapped[str] = mapped_column(String, default="unknown")  # valid/invalid/unknown
+    email_status: Mapped[str] = mapped_column(String, default="unknown")# valid/invalid/unknown
+    phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # never fabricated
     source: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # google_search/maps/manual
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -105,12 +106,15 @@ class Campaign(Base):
     status: Mapped[str] = mapped_column(String, default="PAUSED")  # ACTIVE/PAUSED
     followup1_delay_days: Mapped[int] = mapped_column(Integer, default=1)
     followup2_delay_days: Mapped[int] = mapped_column(Integer, default=1)
+    followup2_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     templates: Mapped[List["CampaignTemplate"]] = relationship(
         back_populates="campaign", cascade="all, delete-orphan"
     )
-    email_events: Mapped[List["EmailEvent"]] = relationship(back_populates="campaign")
+    email_events: Mapped[List["EmailEvent"]] = relationship(
+        back_populates="campaign", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Campaign name={self.name!r} status={self.status}>"

@@ -10,3 +10,5 @@ google-api-python-client==2.149.0
 timezonefinder==6.5.7
 pytz==2024.2
 streamlit
+pyyaml==6.0.2
+apscheduler==3.10.4

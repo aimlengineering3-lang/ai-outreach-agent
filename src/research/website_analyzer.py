@@ -45,6 +45,35 @@ CTA_KEYWORDS = [
 
 PHONE_PATTERN = re.compile(r"\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}")
 EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+# Domains/extensions that indicate a regex match is NOT a real email —
+# either a placeholder the site's template left in, or an image
+# filename (e.g. "logo@2x.png") that superficially looks email-shaped.
+PLACEHOLDER_EMAIL_DOMAINS = {
+    "example.com", "domain.com", "yourdomain.com", "email.com",
+    "test.com", "company.com", "yoursite.com", "sentry.io",
+}
+NON_EMAIL_EXTENSIONS = {
+    "png", "jpg", "jpeg", "gif", "svg", "webp", "ico", "css", "js", "pdf", "woff", "woff2",
+}
+
+
+def _is_plausible_email(email: str) -> bool:
+    """
+    Filters out regex false-positives: image filenames using retina
+    naming conventions (logo@2x.png) and known placeholder emails left
+    in website templates (you@example.com). Both match the email regex
+    syntactically but are never real contact addresses.
+    """
+    domain_part = email.split("@")[-1].lower()
+
+    if domain_part in PLACEHOLDER_EMAIL_DOMAINS:
+        return False
+
+    extension = domain_part.rsplit(".", 1)[-1] if "." in domain_part else ""
+    if extension in NON_EMAIL_EXTENSIONS:
+        return False
+
+    return True
 
 
 def analyze_website(url: str, timeout: float = 10.0) -> WebsiteFacts:
@@ -59,7 +88,7 @@ def analyze_website(url: str, timeout: float = 10.0) -> WebsiteFacts:
             url,
             timeout=timeout,
             follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; ResearchBot/1.0)"},
+            headers={"User-Agent": "Mozilla/5.0"},
         )
         html = response.text
     except (httpx.RequestError, httpx.HTTPStatusError):
@@ -90,7 +119,16 @@ def analyze_website(url: str, timeout: float = 10.0) -> WebsiteFacts:
 
     # --- Phone numbers & emails (dedup while preserving order) ---
     facts.phone_numbers = list(dict.fromkeys(PHONE_PATTERN.findall(visible_text)))
-    facts.emails = list(dict.fromkeys(EMAIL_PATTERN.findall(visible_text)))
+    # Run the email regex against BOTH the visible text AND the raw HTML.
+    # Some sites write emails wrapped in angle brackets (e.g. "<info@x.com>")
+    # as a plain-text convention — BeautifulSoup's parser can mistake that
+    # for an (invalid) HTML tag and silently strip it from get_text(),
+    # so scanning the raw HTML too catches emails that would otherwise
+    # be lost.
+    emails_from_text = EMAIL_PATTERN.findall(visible_text)
+    emails_from_raw_html = EMAIL_PATTERN.findall(html)
+    all_candidates = list(dict.fromkeys(emails_from_text + emails_from_raw_html))
+    facts.emails = [e for e in all_candidates if _is_plausible_email(e)]
     # mailto: links are a more reliable source than visible text — many
     # sites put the email only in a mailto href (behind a "Contact" icon
     # or button), not as plain visible text.

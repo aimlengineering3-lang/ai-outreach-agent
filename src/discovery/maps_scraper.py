@@ -37,7 +37,7 @@ def scrape_maps_listings(
         page = browser.new_page()
 
         search_url = f"https://www.google.com/maps/search/{query.replace(' ', '+')}"
-        page.goto(search_url, timeout=30000)
+        page.goto(search_url, timeout=60000)
 
         try:
             page.wait_for_selector('div[role="feed"]', timeout=10000)

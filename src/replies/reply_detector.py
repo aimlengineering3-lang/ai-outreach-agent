@@ -7,17 +7,22 @@ follow-ups) plus classification.
 This is the piece that turns reply_classifier.py from a standalone
 function into something the pipeline actually uses.
 """
-
+import io
+from contextlib import redirect_stdout
 import base64
 from datetime import datetime, timezone
 from googleapiclient.discovery import build
 from sqlalchemy.orm import Session
-
+from src.email.sender import send_email
+from src.core.config import load_settings
+from datetime import datetime as dt
 from src.email.sender import _get_credentials
 from src.db.models import Lead, EmailEvent, Campaign
 from src.core.state_machine import LeadStatus, transition, InvalidTransitionError
 from src.replies.reply_classifier import classify_reply
-
+from src.replies.night_responder import generate_night_response
+from src.email.sender import send_email
+from src.email.timezone_resolver import is_within_send_window
 
 def _extract_sender_email(headers: list[dict]) -> str | None:
     for header in headers:
@@ -89,10 +94,14 @@ def check_for_replies(session: Session, campaign: Campaign, max_results: int = 2
         body_text = _extract_body_text(message["payload"])
         category = classify_reply(body_text)
 
+        if category == "unsubscribe":
+            from src.core.suppression import add_suppression
+            add_suppression(session, lead.email, reason="unsubscribe", permanent=True)
+
         event = EmailEvent(
             lead_id=lead.id,
             campaign_id=campaign.id,
-            sender_account_id=1,  # TODO: resolve properly once multi-account routing exists
+            sender_account_id=1,
             event_type="REPLY",
             scheduled_for=datetime.now(timezone.utc),
             sent_at=datetime.now(timezone.utc),
@@ -100,14 +109,40 @@ def check_for_replies(session: Session, campaign: Campaign, max_results: int = 2
         )
         session.add(event)
 
-        # Per requirement: ANY reply stops automated follow-ups immediately,
-        # regardless of category. Category is stored for the human to see,
-        # not used to decide whether to stop.
-        try:
-            lead.status = transition(LeadStatus(lead.status), LeadStatus.REPLIED).value
-            lead.status = transition(LeadStatus(lead.status), LeadStatus.STOPPED).value
-        except InvalidTransitionError:
-            pass
+                # If it's currently your quiet hours (e.g. late at night, when
+        # you're asleep), send a brief acknowledgement so the prospect
+        # isn't left waiting with no response until morning.
+        import pytz
+        settings = load_settings()
+        quiet_hours = settings.get(
+            "your_quiet_hours",
+            {"start_hour": 23, "end_hour": 8, "timezone": "Asia/Karachi"}
+        )
+        your_tz = pytz.timezone(quiet_hours["timezone"])
+        your_current_hour = dt.now(your_tz).hour
+
+        start = quiet_hours["start_hour"]
+        end = quiet_hours["end_hour"]
+        # Quiet hours wrap past midnight (e.g. 23 -> 8), so this check
+        # differs from a normal same-day range.
+        if start > end:
+            is_quiet_hours = your_current_hour >= start or your_current_hour < end
+        else:
+            is_quiet_hours = start <= your_current_hour < end
+
+        if is_quiet_hours:
+            night_response = generate_night_response(
+                first_name=lead.contact_name, sender_name="Usman"
+            )
+            try:
+                send_email(
+                    to_address=lead.email,
+                    subject=f"Re: Quick note about {lead.business_name}",
+                    body=night_response.body,
+                    sender_address="marketingwithusman9@gmail.com",
+                )
+            except Exception:
+                pass  # Don't let a failed acknowledgement break reply detection
 
         # Mark as read so we don't reprocess it next run
         service.users().messages().modify(
@@ -135,3 +170,35 @@ if __name__ == "__main__":
         print("No active campaign found.")
 
     session.close()
+
+def check_all_active_campaigns_captured() -> str:
+    """Runs reply-check for every ACTIVE campaign, captures output as string."""
+    from src.db.session import SessionLocal, init_db
+    from src.db.models import Campaign
+
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        init_db()
+        session = SessionLocal()
+        campaigns = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+        if not campaigns:
+            print("No active campaigns to check.")
+        for campaign in campaigns:
+            try:
+                result = check_for_replies(session, campaign)
+                if result["matched_replies"] > 0:
+                    print(
+                        f"'{campaign.name}': Found {result['matched_replies']} new "
+                        f"repl{'y' if result['matched_replies'] == 1 else 'ies'} — "
+                        "follow-ups stopped for those businesses. Check the Leads tab or your inbox for details."
+                    )
+                else:
+                    print(f"'{campaign.name}': No new replies since last check.")
+                if result["unmatched"] > 0:
+                    print(
+                        f"({result['unmatched']} other unread email(s) in your inbox weren't from any known lead — ignored.)"
+                    )
+            except Exception as e:
+                print(f"'{campaign.name}': Something went wrong while checking replies — {e}")
+        session.close()
+    return buffer.getvalue()

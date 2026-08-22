@@ -1,0 +1,16 @@
+sending_window:
+  start_hour: 9
+  end_hour: 22
+target_cities:
+  - city: Austin
+    state: TX
+  - city: Dallas
+    state: TX
+  - city: Houston
+    state: TX
+  - city: New York
+    state: NY
+your_quiet_hours:
+  start_hour: 23
+  end_hour: 8
+  timezone: Asia/Karachi

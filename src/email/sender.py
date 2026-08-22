@@ -29,18 +29,21 @@ TOKEN_PATH = "secrets/token.json"
 
 # TEST_MODE reads from .env so switching to production requires an
 # explicit, deliberate change — never a code default.
-TEST_MODE = os.getenv("APP_MODE", "TEST") == "TEST"
+def is_test_mode() -> bool:
+    """Reads APP_MODE fresh from .env every call, so dashboard toggles apply immediately."""
+    load_dotenv(override=True)
+    return os.getenv("APP_MODE", "TEST") == "TEST"
 
+def _get_credentials(sender_email: str = None) -> Credentials:
+    """
+    Loads cached OAuth token for the given sender account. Each Gmail
+    account needs its own token file since each was authorized separately.
+    """
+    token_path = f"secrets/token_{sender_email}.json" if sender_email else TOKEN_PATH
 
-def _get_credentials() -> Credentials:
-    """
-    Loads cached OAuth token if present and valid; otherwise runs the
-    interactive browser login flow once and caches the result so future
-    runs don't require re-authorizing.
-    """
     creds = None
-    if os.path.exists(TOKEN_PATH):
-        creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -49,7 +52,7 @@ def _get_credentials() -> Credentials:
             flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
             creds = flow.run_local_server(port=0)
 
-        with open(TOKEN_PATH, "w") as token_file:
+        with open(token_path, "w") as token_file:
             token_file.write(creds.to_json())
 
     return creds
@@ -69,11 +72,11 @@ def send_email(
     makes it structurally impossible to accidentally email a real
     prospect while developing.
     """
-    creds = _get_credentials()
+    creds = _get_credentials(sender_address)
     service = build("gmail", "v1", credentials=creds)
 
     actual_recipient = to_address
-    if TEST_MODE:
+    if is_test_mode():
         actual_recipient = self_test_address or sender_address
         subject = f"[TEST MODE - would send to {to_address}] {subject}"
 
@@ -91,7 +94,7 @@ def send_email(
     return {
         "message_id": result.get("id"),
         "actual_recipient": actual_recipient,
-        "test_mode": TEST_MODE,
+        "test_mode": is_test_mode(),
     }
 
 

@@ -83,7 +83,7 @@ def detect_tech_static(url: str, timeout: float = 10.0) -> TechDetectionResult:
             url,
             timeout=timeout,
             follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; ResearchBot/1.0)"},
+            headers={"User-Agent": "Mozilla/5.0"},
         )
         html = response.text
     except (httpx.RequestError, httpx.HTTPStatusError):
