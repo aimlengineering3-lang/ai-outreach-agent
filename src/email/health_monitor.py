@@ -4,7 +4,7 @@ never a hardcoded number. Also determines account health status.
 """
 
 from dataclasses import dataclass
-
+from datetime import datetime, timezone
 from src.db.models import SenderAccount
 
 
@@ -27,6 +27,11 @@ def compute_capacity(account: SenderAccount) -> CapacityResult:
     and recent health signals. This is the enforcement point for the
     "no hardcoded 500/1000" requirement.
     """
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).date()
+    if account.last_reset_at.date() != today:
+        account.sent_today = 0
+        account.last_reset_at = datetime.now(timezone.utc)
     if account.spam_complaint_count_7d >= COMPLAINT_PAUSE_THRESHOLD:
         return CapacityResult(0, "PAUSED", "spam_complaints_exceeded_threshold")
 

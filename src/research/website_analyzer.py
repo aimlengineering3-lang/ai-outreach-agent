@@ -52,6 +52,13 @@ PLACEHOLDER_EMAIL_DOMAINS = {
     "example.com", "domain.com", "yourdomain.com", "email.com",
     "test.com", "company.com", "yoursite.com", "sentry.io",
 }
+# Well-known placeholder EMAILS (not just domains) used by common form
+# validation libraries and code examples — these pass domain checks
+# but are never real business contacts.
+PLACEHOLDER_EMAIL_EXACT = {
+    "john@smith.com", "jane@doe.com", "john.doe@example.com",
+    "test@test.com", "name@email.com", "your@email.com",
+}
 NON_EMAIL_EXTENSIONS = {
     "png", "jpg", "jpeg", "gif", "svg", "webp", "ico", "css", "js", "pdf", "woff", "woff2",
 }
@@ -64,6 +71,8 @@ def _is_plausible_email(email: str) -> bool:
     in website templates (you@example.com). Both match the email regex
     syntactically but are never real contact addresses.
     """
+    if email.lower() in PLACEHOLDER_EMAIL_EXACT:
+        return False
     domain_part = email.split("@")[-1].lower()
 
     if domain_part in PLACEHOLDER_EMAIL_DOMAINS:

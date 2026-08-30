@@ -66,18 +66,20 @@ def _search_patterns(html: str, patterns: list[str]) -> bool:
 
 
 def detect_tech_static(url: str, timeout: float = 10.0) -> TechDetectionResult:
-    """
-    Fetches raw HTML via a plain HTTP request (no JS execution) and checks
-    for tracking-tool signatures.
+    # If the "website" is actually a social media profile page (not the
+    # business's own site), we cannot make any determination about their
+    # tracking setup — the concept doesn't apply the same way, and these
+    # platforms typically block/limit scraping anyway. Report UNKNOWN
+    # rather than a potentially misleading MISSING.
+    social_platforms = ["facebook.com", "instagram.com", "linkedin.com/company", "yelp.com", "twitter.com", "x.com"]
+    if any(platform in url.lower() for platform in social_platforms):
+        return TechDetectionResult(
+            meta_pixel="UNKNOWN",
+            google_analytics="UNKNOWN",
+            gtm="UNKNOWN",
+            fetch_succeeded=False,
+        )
 
-    Limitation this function has by design: if a site injects Meta Pixel
-    dynamically via JavaScript (common with GTM-managed sites), the raw
-    HTML won't contain the fbq( signature even though Pixel IS present.
-    That's why a PRESENT here is trustworthy, but a "not found" here is
-    NOT proof of absence — it just means static HTML didn't show it.
-    The caller (website_analyzer.py) decides whether to escalate to a
-    browser-rendered check.
-    """
     try:
         response = httpx.get(
             url,

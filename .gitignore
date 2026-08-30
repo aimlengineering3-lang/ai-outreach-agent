@@ -7,6 +7,8 @@ data/processed/
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
 .vscode/
 *.log
 secrets/

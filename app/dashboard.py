@@ -332,9 +332,13 @@ if page == "Overview":
             cat = e.notes.split("category=")[1].strip()
             reply_categories[cat] = reply_categories.get(cat, 0) + 1
 
-    total_daily_capacity = sum(
-        acc.daily_limit for acc in session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
-    )
+    from src.email.health_monitor import compute_capacity as _compute_capacity_for_reset
+    active_accounts_for_reset = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
+    for acc in active_accounts_for_reset:
+        _compute_capacity_for_reset(acc)
+    session.commit()
+
+    total_daily_capacity = sum(acc.daily_limit for acc in active_accounts_for_reset)
 
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Leads Discovered", total_leads)
@@ -865,6 +869,7 @@ elif page == "Sender Accounts":
 
     for acc in accounts:
         capacity = compute_capacity(acc)
+        session.commit()  # persist any daily reset that just happened
         with st.container(border=True):
             col1, col2, col3 = st.columns([3, 1.5, 2])
             col1.markdown(f"**{acc.email}**  ·  {acc.provider}")

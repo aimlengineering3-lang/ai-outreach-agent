@@ -231,6 +231,7 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
     for acc in active_accounts:
         cap = compute_capacity(acc)
         remaining_capacity[acc.id] = cap.available_capacity
+    session.commit()  # persist any daily resets that just happened
 
     if sum(remaining_capacity.values()) <= 0:
         summary["skipped_no_capacity"] = -1
