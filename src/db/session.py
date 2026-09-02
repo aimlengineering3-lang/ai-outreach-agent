@@ -16,16 +16,17 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/outreach.db")
 
 # echo=False keeps the terminal clean; set True temporarily if you want to
 # see every SQL statement SQLAlchemy generates (useful for learning/debugging)
-engine = create_engine(
-    DATABASE_URL, echo=False,
-    connect_args={"timeout": 30},  # wait up to 30s if the DB is briefly locked
-)
-
-# WAL mode allows one writer + multiple readers simultaneously, which
-# is exactly our situation: the dashboard (Streamlit) may be open at
-# the same time as a command-line script or the background worker.
-with engine.connect() as conn:
-    conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
+if DATABASE_URL.startswith("sqlite"):
+    # SQLite-specific settings: wait if briefly locked, and use WAL
+    # mode so the dashboard, background worker, and scripts can all
+    # read/write without "database is locked" errors.
+    engine = create_engine(DATABASE_URL, echo=False, connect_args={"timeout": 30})
+    with engine.connect() as conn:
+        conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
+else:
+    # PostgreSQL (Supabase) doesn't use these SQLite-only options —
+    # it already handles concurrent connections natively.
+    engine = create_engine(DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(bind=engine)
 
