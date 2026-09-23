@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-call .venv\Scripts\activate.bat
-streamlit run app/dashboard.py
+"%~dp0.venv\Scripts\python.exe" -m streamlit run app\dashboard.py
+pause

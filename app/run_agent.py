@@ -9,6 +9,7 @@ and suppression.py.
 """
 
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -46,25 +47,98 @@ from src.email.sender import send_email
 FALLBACK_GREETING_TEMPLATE = "Hi {business_name} team,"
 
 
+# A business's name must contain at least one of these words to count
+# as genuinely in-niche. Google Maps returns loosely-related categories
+# for a niche search (hardware stores, unions, general contractors),
+# so a plain keyword search is not enough on its own — see
+# EXCLUDE_KEYWORDS below for names that get rejected regardless.
+# Edit these lists freely as new false positives/negatives show up.
+NICHE_KEYWORDS = {
+    "plumbing": ["plumb", "pipe", "septic", "drain", "sewer", "pump", "mechanical", "heating", "hvac"],
+    "hvac": ["hvac", "heating", "cooling", "air condition", "furnace", "mechanical", "refrigeration"],
+    "roofing": ["roof", "gutter", "siding", "exterior"],
+    "electrical": ["electric", "electrical", "wiring", "lighting"],
+}
+
+# Names containing any of these are rejected regardless of niche —
+# these are categories that Maps includes as "related" but are never
+# real outreach targets (supply stores, unions, clinics, etc.).
+EXCLUDE_KEYWORDS = [
+    "union", "training center", "hardware", "supply", "rental",
+    "urology", "clinic", "hospital", "pharmacy", "wholesale",
+    "distributor", "association",
+]
+
+
+def _is_in_niche(business_name: str, niche: str) -> bool:
+    name_lower = business_name.lower()
+
+    if any(bad in name_lower for bad in EXCLUDE_KEYWORDS):
+        return False
+
+    keywords = NICHE_KEYWORDS.get(niche)
+    if not keywords:
+        # Unknown niche — no keyword list configured, so don't filter.
+        return True
+
+    return any(kw in name_lower for kw in keywords)
+
+
 # ---------------------------------------------------------------------
 # STAGE 1: DISCOVERY
 # ---------------------------------------------------------------------
-def discover_and_save(session, niche: str, city: str, state: str, max_results: int = 10) -> int:
+def discover_and_save(session, niche: str, city: str, state: str, max_results: int = 10) -> tuple[int, bool]:
     """
-    Scrapes Maps listings and inserts only genuinely new leads. Checks
-    each new listing against BOTH leads already in the database AND
-    other listings already processed earlier in this same scrape —
-    Google Maps sometimes returns the same business twice in one query
-    (e.g. duplicate pins), so within-batch checking is required too.
+    Scrapes Maps listings and inserts only genuinely new, in-niche
+    leads. Checks each new listing against BOTH leads already in the
+    database AND other listings already processed earlier in this same
+    scrape — Google Maps sometimes returns the same business twice in
+    one query (e.g. duplicate pins), so within-batch checking is
+    required too. Returns (inserted_count, reached_max_results).
     """
     query = f"{niche} in {city}, {state}"
-    listings = scrape_maps_listings(query, max_results=max_results, headless=True)
-
     existing_leads = session.query(Lead).filter(Lead.niche == niche).all()
+    # Release the DB connection now — everything below (should_visit,
+    # the whole Playwright scrape) works purely off the in-memory
+    # existing_leads list and needs no further DB access until the
+    # insert loop after scraping finishes. Without this, the query
+    # above keeps the connection checked out for the entire scrape
+    # (was ~150s) with the DB doing nothing during that time.
+    session.commit()
+
+    def should_visit(business_name: str) -> bool:
+        # Cheap prefilter using only the name Maps already shows in its
+        # list view, before that business's own page is ever opened.
+        # This can only catch name-based duplicates (same city + a
+        # similar name) since we don't have the candidate's website
+        # yet — domain-based duplicates are still caught by the full
+        # check below, after visiting, so no accuracy is lost. This
+        # purely skips redundant page visits for businesses already
+        # known, which matters most when re-running an already-covered
+        # city.
+        if not _is_in_niche(business_name, niche):
+            return False
+        already_known = any(
+            is_likely_duplicate(
+                business_name, None, city,
+                existing.business_name, existing.website, existing.city,
+            ).is_duplicate
+            for existing in existing_leads
+        )
+        return not already_known
+
+    scrape_result = scrape_maps_listings(
+        query, max_results=max_results, headless=True, should_visit=should_visit,
+    )
+    listings = scrape_result.listings
+
     newly_added_this_run = []  # tracks leads added within THIS call, for in-batch dedup
     inserted = 0
 
     for listing in listings:
+        if not _is_in_niche(listing.business_name, niche):
+            continue
+
         is_dup_against_db = any(
             is_likely_duplicate(
                 listing.business_name, listing.website, city,
@@ -92,12 +166,22 @@ def discover_and_save(session, niche: str, city: str, state: str, max_results: i
         inserted += 1
 
     session.commit()
-    return inserted
+    return inserted, scrape_result.reached_max_results
 
 
 # ---------------------------------------------------------------------
 # STAGE 2: RESEARCH
 # ---------------------------------------------------------------------
+# After this many failed fetch attempts (across separate pipeline
+# runs — each attempt already includes its own internal retry inside
+# analyze_website_with_contact_fallback), a lead's website is treated
+# as permanently unreachable and we stop re-paying the timeout cost on
+# every future run. It still ends up correctly in the Manual Review
+# tab (that's driven by lead.email being empty, not by status), it
+# just stops being re-fetched.
+MAX_RESEARCH_ATTEMPTS = 3
+
+
 def research_lead(session, lead: Lead) -> bool:
     """
     Runs all deterministic research steps for one lead, saves a
@@ -105,12 +189,42 @@ def research_lead(session, lead: Lead) -> bool:
     the lead to RESEARCHED.
     """
     if not lead.website:
-        return False
+        # Nothing to ever fetch — this is a permanent, final outcome
+        # (Facebook-page-only or no-website businesses), not a
+        # transient failure, so finalize it now instead of leaving it
+        # stuck in NEW to be checked again on every future run.
+        if lead.status == LeadStatus.NEW.value:
+            try:
+                lead.status = transition(LeadStatus(lead.status), LeadStatus.RESEARCHED).value
+            except InvalidTransitionError:
+                session.rollback()
+                return False
+        session.commit()
+        return True
 
     facts = analyze_website_with_contact_fallback(lead.website)
     tech = detect_tech_static(lead.website)
 
     if not facts.fetch_succeeded:
+        lead.research_fetch_failures += 1
+
+        if lead.research_fetch_failures >= MAX_RESEARCH_ATTEMPTS:
+            # Given up enough transient-retry chances — treat as a
+            # final "no email findable" outcome so this stops costing
+            # a full timeout on every future pipeline run.
+            if lead.status == LeadStatus.NEW.value:
+                try:
+                    lead.status = transition(LeadStatus(lead.status), LeadStatus.RESEARCHED).value
+                except InvalidTransitionError:
+                    session.rollback()
+                    return False
+            session.commit()
+            return True
+
+        # Still under the retry limit — leave it in NEW so a future
+        # run (this city again, or the background worker's retry job)
+        # gives it another chance, in case the failure was transient.
+        session.commit()
         return False
 
     try:
@@ -368,23 +482,25 @@ def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
     session = SessionLocal()
 
     print(f"Searching for {niche} businesses in {city}, {state}...")
-    new_count = discover_and_save(session, niche, city, state, max_results=25)
+    new_count, reached_limit = discover_and_save(session, niche, city, state, max_results=150)
 
-    if new_count == 0:
-        print(f"No new businesses found — {city} looks fully covered for {niche} right now.")
-    elif new_count < 25:
-        print(f"Found {new_count} new business(es) — that's likely all of them for {city}.")
+    if new_count == 0 and not reached_limit:
+        print(f"No new businesses found. {city} appears to be fully covered for {niche} right now.")
+    elif reached_limit:
+        print(f"Found {new_count} new business(es). There are likely more out there — run this city again to keep finding them.")
     else:
-        print(f"Found {new_count} new business(es) — there may be more. Run this city again later to check.")
+        print(f"Found {new_count} new business(es). That's likely all of them for {city}.")
 
     print("")
     print("Researching newly found businesses...")
-    new_leads = session.query(Lead).filter(Lead.status == LeadStatus.NEW.value, Lead.niche == niche).all()
+    new_leads = session.query(Lead).filter(
+        Lead.status == LeadStatus.NEW.value, Lead.niche == niche, Lead.city == city,
+    ).all()
     researched_count = sum(1 for lead in new_leads if research_lead(session, lead))
     if researched_count > 0:
         print(f"Completed research on {researched_count} business(es).")
     else:
-        print("Nothing new to research right now.")
+        print("There was nothing new to research this time.")
 
     if campaign_id:
         campaign = session.query(Campaign).filter(Campaign.id == campaign_id, Campaign.status == "ACTIVE").first()
@@ -434,6 +550,7 @@ def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
 
     session.close()
 
+
 def run_pipeline_captured(niche: str, city: str, state: str, campaign_id: int = None) -> str:
     """
     Runs the pipeline and captures all print() output as a string, so
@@ -444,7 +561,7 @@ def run_pipeline_captured(niche: str, city: str, state: str, campaign_id: int = 
         try:
             run_pipeline(niche, city, state, campaign_id)
         except Exception as e:
-            print(f"ERROR: {e}")
+            print(f"Something went wrong while running the pipeline: {e}")
     return buffer.getvalue()
 if __name__ == "__main__":
     run_pipeline(niche="plumbing", city="Austin", state="TX")

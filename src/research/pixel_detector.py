@@ -65,7 +65,7 @@ def _search_patterns(html: str, patterns: list[str]) -> bool:
     return False
 
 
-def detect_tech_static(url: str, timeout: float = 10.0) -> TechDetectionResult:
+def detect_tech_static(url: str, timeout: float = 25.0) -> TechDetectionResult:
     # If the "website" is actually a social media profile page (not the
     # business's own site), we cannot make any determination about their
     # tracking setup — the concept doesn't apply the same way, and these

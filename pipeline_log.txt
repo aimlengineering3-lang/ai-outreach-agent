@@ -1,0 +1,1668 @@
+
+--- 2026-09-03 12:00:01.359254 ---
+Searching for plumbing businesses in Apalachicola, FL...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+14 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No new businesses found — Apalachicola looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+No emails were sent this time.
+
+Total plumbing leads found in Apalachicola so far: 0
+
+
+--- 2026-09-03 12:06:59.824358 ---
+Searching for plumbing businesses in Belle Glade, FL...
+Found 3 new business(es) — that's likely all of them for Belle Glade.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+14 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+5 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Belle Glade so far: 3
+
+
+--- 2026-09-03 12:17:05.738049 ---
+Searching for plumbing businesses in Apalachicola, FL...
+No new businesses found — Apalachicola looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+
+Sending emails...
+No emails were sent this time.
+1 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Apalachicola so far: 0
+
+
+--- 2026-09-03 12:19:55.973841 ---
+Searching for plumbing businesses in Bartow, FL...
+Found 8 new business(es) — that's likely all of them for Bartow.
+
+Researching newly found businesses...
+Completed research on 5 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+2 business(es) are ready to be emailed.
+3 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+3 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Bartow so far: 8
+
+
+--- 2026-09-03 12:21:11.352563 ---
+Searching for plumbing businesses in Belle Glade, FL...
+No new businesses found — Belle Glade looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+3 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+3 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Belle Glade so far: 3
+
+
+--- 2026-09-03 12:52:52.424441 ---
+Searching for plumbing businesses in Boca Raton, FL...
+Found 23 new business(es) — that's likely all of them for Boca Raton.
+
+Researching newly found businesses...
+Completed research on 21 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+12 business(es) are ready to be emailed.
+12 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+15 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Boca Raton so far: 23
+
+
+--- 2026-09-03 12:57:41.668899 ---
+Searching for plumbing businesses in Boca Raton, FL...
+Found 1 new business(es) — that's likely all of them for Boca Raton.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+13 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+15 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Boca Raton so far: 24
+
+
+--- 2026-09-03 13:08:02.828986 ---
+Searching for plumbing businesses in Bradenton, FL...
+Found 24 new business(es) — that's likely all of them for Bradenton.
+
+Researching newly found businesses...
+Completed research on 22 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+5 business(es) are ready to be emailed.
+30 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+20 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Bradenton so far: 24
+
+
+--- 2026-09-03 21:19:28.861936 ---
+Searching for plumbing businesses in Bradenton, FL...
+Found 5 new business(es) — that's likely all of them for Bradenton.
+
+Researching newly found businesses...
+Completed research on 5 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+2 business(es) are ready to be emailed.
+33 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+ERROR: ('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
+
+
+--- 2026-09-04 10:29:36.654429 ---
+Searching for plumbing businesses in Cape Coral, FL...
+Found 27 new business(es) — there may be more. Run this city again later to check.
+
+Researching newly found businesses...
+Completed research on 24 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+13 business(es) are ready to be emailed.
+44 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+35 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Cape Coral so far: 27
+
+
+--- 2026-09-04 10:34:16.965056 ---
+Searching for plumbing businesses in Cape Coral, FL...
+No new businesses found — Cape Coral looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+44 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+35 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Cape Coral so far: 27
+
+
+--- 2026-09-04 10:43:29.493902 ---
+Searching for plumbing businesses in Clearwater, FL...
+Found 16 new business(es) — that's likely all of them for Clearwater.
+
+Researching newly found businesses...
+Completed research on 14 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+7 business(es) are ready to be emailed.
+51 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+42 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Clearwater so far: 16
+
+
+--- 2026-09-04 11:01:28.494658 ---
+Searching for plumbing businesses in Cocoa Beach, FL...
+Found 23 new business(es) — that's likely all of them for Cocoa Beach.
+
+Researching newly found businesses...
+Completed research on 18 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+8 business(es) are ready to be emailed.
+61 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+50 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Cocoa Beach so far: 23
+
+
+--- 2026-09-04 11:13:25.807658 ---
+Searching for plumbing businesses in Cocoa-Rockledge, FL...
+Found 3 new business(es) — that's likely all of them for Cocoa-Rockledge.
+
+Researching newly found businesses...
+Completed research on 3 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+63 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+51 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Cocoa-Rockledge so far: 3
+
+
+--- 2026-09-04 12:05:56.066057 ---
+Searching for plumbing businesses in Cocoa-Rockledge, FL...
+No new businesses found — Cocoa-Rockledge looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+63 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+51 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Cocoa-Rockledge so far: 3
+
+
+--- 2026-09-04 12:20:13.544147 ---
+Searching for plumbing businesses in Coral Gables, FL...
+Found 18 new business(es) — that's likely all of them for Coral Gables.
+
+Researching newly found businesses...
+Completed research on 13 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+7 business(es) are ready to be emailed.
+69 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+58 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Coral Gables so far: 18
+
+
+--- 2026-09-04 12:31:35.874492 ---
+Searching for plumbing businesses in Daytona Beach, FL...
+Found 23 new business(es) — that's likely all of them for Daytona Beach.
+
+Researching newly found businesses...
+Completed research on 15 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+8 business(es) are ready to be emailed.
+76 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+66 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Daytona Beach so far: 23
+
+
+--- 2026-09-04 21:36:55.476845 ---
+Searching for plumbing businesses in Bradenton, FL...
+Found 2 new business(es) — that's likely all of them for Bradenton.
+
+Researching newly found businesses...
+Completed research on 2 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+77 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+ERROR: ('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
+
+
+--- 2026-09-04 21:58:29.872896 ---
+Searching for plumbing businesses in Daytona Beach, FL...
+Found 2 new business(es) — that's likely all of them for Daytona Beach.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+77 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 68 email(s) successfully.
+
+Total plumbing leads found in Daytona Beach so far: 25
+
+
+--- 2026-09-04 22:15:12.596934 ---
+Searching for plumbing businesses in De Land, FL...
+Found 19 new business(es) — that's likely all of them for De Land.
+
+Researching newly found businesses...
+Completed research on 15 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+9 business(es) are ready to be emailed.
+83 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 9 email(s) successfully.
+
+Total plumbing leads found in De Land so far: 19
+
+
+--- 2026-09-04 22:30:22.105802 ---
+Searching for plumbing businesses in Deerfield Beach, FL...
+Found 18 new business(es) — that's likely all of them for Deerfield Beach.
+
+Researching newly found businesses...
+Completed research on 14 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+8 business(es) are ready to be emailed.
+89 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 8 email(s) successfully.
+
+Total plumbing leads found in Deerfield Beach so far: 18
+
+
+--- 2026-09-04 22:46:00.263269 ---
+Searching for plumbing businesses in Delray Beach, FL...
+Found 19 new business(es) — that's likely all of them for Delray Beach.
+
+Researching newly found businesses...
+Completed research on 18 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+9 business(es) are ready to be emailed.
+98 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 9 email(s) successfully.
+
+Total plumbing leads found in Delray Beach so far: 19
+
+
+--- 2026-09-06 22:21:20.651872 ---
+Searching for plumbing businesses in Anchorage, AK...
+Found 18 new business(es) — that's likely all of them for Anchorage.
+
+Researching newly found businesses...
+Completed research on 29 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+14 business(es) are ready to be emailed.
+113 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 6 email(s) successfully.
+8 email(s) skipped — the account that should send their follow-up is out of capacity today.
+
+Total plumbing leads found in Anchorage so far: 18
+
+
+--- 2026-09-06 22:28:13.199169 ---
+Searching for plumbing businesses in Cordova, AK...
+No new businesses found — Cordova looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+113 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+No active sender account with available capacity was found.
+
+Total plumbing leads found in Cordova so far: 0
+
+
+--- 2026-09-07 21:17:17.420071 ---
+Searching for plumbing businesses in Anchorage, AK...
+ERROR: (psycopg2.OperationalError) server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[SQL: SELECT leads.id AS leads_id, leads.business_name AS leads_business_name, leads.niche AS leads_niche, leads.city AS leads_city, leads.state AS leads_state, leads.timezone AS leads_timezone, leads.website AS leads_website, leads.email AS leads_email, leads.email_status AS leads_email_status, leads.phone AS leads_phone, leads.contact_name AS leads_contact_name, leads.source AS leads_source, leads.created_at AS leads_created_at, leads.status AS leads_status 
+FROM leads 
+WHERE leads.niche = %(niche_1)s]
+[parameters: {'niche_1': 'plumbing'}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+
+--- 2026-09-07 21:33:31.784461 ---
+Searching for plumbing businesses in Anchorage, AK...
+Found 27 new business(es) — there may be more. Run this city again later to check.
+
+Researching newly found businesses...
+Completed research on 18 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+14 business(es) are ready to be emailed.
+117 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 6 email(s) successfully.
+16 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Anchorage so far: 45
+
+
+--- 2026-09-07 22:18:27.798884 ---
+Searching for plumbing businesses in Anchorage, AK...
+Found 30 new business(es) — there may be more. Run this city again later to check.
+
+Researching newly found businesses...
+Completed research on 20 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+7 business(es) are ready to be emailed.
+130 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 23 email(s) successfully.
+
+Total plumbing leads found in Anchorage so far: 75
+
+
+--- 2026-09-08 22:31:59.336836 ---
+Searching for plumbing businesses in Anchorage, AK...
+No new businesses found — Anchorage looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+130 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 35 email(s) successfully.
+
+Total plumbing leads found in Anchorage so far: 75
+
+
+--- 2026-09-09 09:02:07.762589 ---
+Searching for plumbing businesses in Anchorage, AK...
+ERROR: (psycopg2.OperationalError) server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[SQL: SELECT leads.id AS leads_id, leads.business_name AS leads_business_name, leads.niche AS leads_niche, leads.city AS leads_city, leads.state AS leads_state, leads.timezone AS leads_timezone, leads.website AS leads_website, leads.email AS leads_email, leads.email_status AS leads_email_status, leads.phone AS leads_phone, leads.contact_name AS leads_contact_name, leads.source AS leads_source, leads.created_at AS leads_created_at, leads.status AS leads_status 
+FROM leads 
+WHERE leads.niche = %(niche_1)s]
+[parameters: {'niche_1': 'plumbing'}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+
+--- 2026-09-09 09:08:22.600062 ---
+Searching for plumbing businesses in Anchorage, AK...
+No new businesses found — Anchorage looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+130 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+
+Total plumbing leads found in Anchorage so far: 75
+
+
+--- 2026-09-09 09:22:36.688699 ---
+Searching for plumbing businesses in Fairbanks, AK...
+No new businesses found — Fairbanks looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+130 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+
+Total plumbing leads found in Fairbanks so far: 0
+
+
+--- 2026-09-18 18:29:05.585850 ---
+Searching for plumbing businesses in Fairbanks, AK...
+No new businesses found — Fairbanks looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+130 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 1 email(s) successfully.
+
+Total plumbing leads found in Fairbanks so far: 0
+
+
+--- 2026-09-18 19:22:55.160229 ---
+Searching for plumbing businesses in Fairbanks, AK...
+ERROR: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(psycopg2.OperationalError) server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[SQL: UPDATE leads SET email=%(email)s, email_status=%(email_status)s WHERE leads.id = %(leads_id)s]
+[parameters: {'email': 'estimating@bmcak.com', 'email_status': 'valid', 'leads_id': 347}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+
+--- 2026-09-18 19:37:46.855815 ---
+Searching for plumbing businesses in Fairbanks, AK...
+No new businesses found — Fairbanks looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+132 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+2 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Fairbanks so far: 7
+
+
+--- 2026-09-18 19:51:24.961756 ---
+Searching for plumbing businesses in Fairbanks, AK...
+  [debug] Maps returned 94 raw listing(s) for 'plumbing in Fairbanks, AK'.
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Prospector Plumbing and Heating' as duplicate (domain_match).
+  [debug] Skipped 'Mr. Rooter Plumbing of Fairbanks' as duplicate (domain_match).
+  [debug] Skipped 'Mr. Rooter Plumbing of Fairbanks' as duplicate (domain_match).
+  [debug] Skipped 'Mr. Rooter Plumbing of Fairbanks' as duplicate (domain_match).
+  [debug] Skipped 'Mr. Rooter Plumbing of Fairbanks' as duplicate (domain_match).
+  [debug] Skipped 'Mr. Rooter Plumbing of Fairbanks' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Septic Pro' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Midnight Sun Heating' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'Stew's Electric & Lighting' as duplicate (domain_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] Skipped 'SOS Plumbing & Heating' as duplicate (name_match).
+  [debug] 91 duplicate(s) skipped, 3 genuinely new lead(s) inserted.
+Found 3 new business(es) — that's likely all of them for Fairbanks.
+
+Researching newly found businesses...
+Completed research on 3 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+134 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+3 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Fairbanks so far: 10
+
+
+--- 2026-09-18 20:09:27.481890 ---
+Searching for plumbing businesses in Haines, AK...
+No new businesses found — Haines looks fully covered for plumbing right now.
+
+Researching newly found businesses...
+Nothing new to research right now.
+
+Preparing eligible businesses for campaign 'Testing'...
+134 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+3 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Haines so far: 0
+
+
+--- 2026-09-19 19:56:54.340059 ---
+Searching for plumbing businesses in Fairbanks, AK...
+ERROR: 'ScrapeResult' object is not iterable
+
+
+--- 2026-09-19 21:04:30.249461 ---
+Searching for plumbing businesses in Fairbanks, AK...
+Found 35 new business(es) — that's likely all of them for Fairbanks.
+
+Researching newly found businesses...
+Completed research on 21 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+11 business(es) are ready to be emailed.
+144 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 1 email(s) successfully.
+14 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Fairbanks so far: 45
+
+
+--- 2026-09-19 21:19:58.294193 ---
+Searching for plumbing businesses in Homer, AK...
+Found 5 new business(es) — that's likely all of them for Homer.
+
+Researching newly found businesses...
+Completed research on 3 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+2 business(es) are ready to be emailed.
+145 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+16 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Homer so far: 5
+
+
+--- 2026-09-19 21:39:04.679265 ---
+Searching for plumbing businesses in Juneau, AK...
+Found 18 new business(es) — that's likely all of them for Juneau.
+
+Researching newly found businesses...
+Completed research on 10 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+8 business(es) are ready to be emailed.
+147 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+24 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Juneau so far: 18
+
+
+--- 2026-09-19 21:49:49.901485 ---
+Searching for plumbing businesses in Ketchikan, AK...
+Found 3 new business(es) — that's likely all of them for Ketchikan.
+[timing] Discovery (Maps scrolling + visiting pages) took 59s.
+
+Researching newly found businesses...
+Completed research on 2 business(es).
+[timing] Research (website checks) took 257s for 90 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+2 business(es) are ready to be emailed.
+147 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+26 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Ketchikan so far: 3
+
+
+--- 2026-09-19 22:06:39.879805 ---
+Searching for plumbing businesses in Kodiak, AK...
+Found 5 new business(es) — that's likely all of them for Kodiak.
+[timing] Discovery (Maps scrolling + visiting pages) took 67s.
+
+Researching newly found businesses...
+Completed research on 5 business(es).
+[timing] Research (website checks) took 62s for 5 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+2 business(es) are ready to be emailed.
+150 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 28 email(s) successfully.
+
+Total plumbing leads found in Kodiak so far: 5
+
+
+--- 2026-09-19 22:10:01.376339 ---
+Searching for plumbing businesses in Nome, AK...
+Found 1 new business(es) — that's likely all of them for Nome.
+[timing] Discovery (Maps scrolling + visiting pages) took 51s.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+[timing] Research (website checks) took 1s for 1 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+151 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+
+Total plumbing leads found in Nome so far: 1
+
+
+--- 2026-09-19 22:13:54.540024 ---
+Searching for plumbing businesses in Palmer, AK...
+Found 4 new business(es) — that's likely all of them for Palmer.
+[timing] Discovery (Maps scrolling + visiting pages) took 72s.
+
+Researching newly found businesses...
+Completed research on 4 business(es).
+[timing] Research (website checks) took 41s for 4 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+1 business(es) are ready to be emailed.
+154 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+Sent 1 email(s) successfully.
+
+Total plumbing leads found in Palmer so far: 4
+
+
+--- 2026-09-19 22:18:10.578197 ---
+Searching for plumbing businesses in Sitka, AK...
+Found 2 new business(es) — that's likely all of them for Sitka.
+[timing] Discovery (Maps scrolling + visiting pages) took 46s.
+
+Researching newly found businesses...
+Completed research on 2 business(es).
+[timing] Research (website checks) took 2s for 2 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+156 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+
+Total plumbing leads found in Sitka so far: 2
+
+
+--- 2026-09-19 22:21:20.237993 ---
+Searching for plumbing businesses in Skagway, AK...
+No new businesses found — Skagway looks fully covered for plumbing right now.
+[timing] Discovery (Maps scrolling + visiting pages) took 39s.
+
+Researching newly found businesses...
+Nothing new to research right now.
+[timing] Research (website checks) took 1s for 0 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+156 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+
+Total plumbing leads found in Skagway so far: 0
+
+
+--- 2026-09-19 22:22:44.358159 ---
+Searching for plumbing businesses in Valdez, AK...
+Found 1 new business(es) — that's likely all of them for Valdez.
+[timing] Discovery (Maps scrolling + visiting pages) took 34s.
+
+Researching newly found businesses...
+Completed research on 1 business(es).
+[timing] Research (website checks) took 1s for 1 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+157 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+
+Total plumbing leads found in Valdez so far: 1
+
+
+--- 2026-09-20 17:53:29.319798 ---
+Searching for plumbing businesses in Hanalei, HI...
+Found 25 new business(es) — that's likely all of them for Hanalei.
+[timing] Discovery (Maps scrolling + visiting pages) took 152s.
+
+Researching newly found businesses...
+Completed research on 23 business(es).
+[timing] Research (website checks) took 172s for 25 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+7 business(es) are ready to be emailed.
+173 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+7 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Hanalei so far: 25
+
+
+--- 2026-09-20 18:12:13.130807 ---
+Searching for plumbing businesses in Hilo, HI...
+Found 52 new business(es) — that's likely all of them for Hilo.
+[timing] Discovery (Maps scrolling + visiting pages) took 289s.
+
+Researching newly found businesses...
+Completed research on 51 business(es).
+[timing] Research (website checks) took 430s for 52 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+10 business(es) are ready to be emailed.
+214 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+17 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Hilo so far: 52
+
+
+--- 2026-09-20 18:23:15.073180 ---
+Searching for plumbing businesses in Honaunau, HI...
+Found 4 new business(es) — that's likely all of them for Honaunau.
+[timing] Discovery (Maps scrolling + visiting pages) took 88s.
+
+Researching newly found businesses...
+Completed research on 4 business(es).
+[timing] Research (website checks) took 4s for 4 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+218 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+17 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Honaunau so far: 4
+
+
+--- 2026-09-20 18:43:59.121980 ---
+Searching for plumbing businesses in Honolulu, HI...
+Found 57 new business(es) — that's likely all of them for Honolulu.
+[timing] Discovery (Maps scrolling + visiting pages) took 274s.
+
+Researching newly found businesses...
+Completed research on 56 business(es).
+[timing] Research (website checks) took 718s for 57 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+13 business(es) are ready to be emailed.
+261 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+30 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Honolulu so far: 57
+
+
+--- 2026-09-20 20:06:13.352695 ---
+Searching for plumbing businesses in Kahului, HI...
+Found 17 new business(es) — that's likely all of them for Kahului.
+[timing] Discovery (Maps scrolling + visiting pages) took 143s.
+
+Researching newly found businesses...
+Completed research on 16 business(es).
+[timing] Research (website checks) took 236s for 17 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+5 business(es) are ready to be emailed.
+272 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+35 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Kahului so far: 17
+
+
+--- 2026-09-20 20:59:43.987255 ---
+Searching for plumbing businesses in Kaneohe, HI...
+No new businesses found — Kaneohe looks fully covered for plumbing right now.
+[timing] Discovery (Maps scrolling + visiting pages) took 187s.
+
+Researching newly found businesses...
+Completed research on 32 business(es).
+[timing] Research (website checks) took 370s for 36 lead(s).
+
+Preparing eligible businesses for campaign 'Testing'...
+7 business(es) are ready to be emailed.
+310 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+42 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Kaneohe so far: 49
+
+
+--- 2026-09-20 21:09:45.302149 ---
+Searching for plumbing businesses in Kapaa, HI...
+Found 16 new business(es). That's likely all of them for Kapaa.
+
+Researching newly found businesses...
+Completed research on 15 business(es).
+
+Preparing eligible businesses for campaign 'Testing'...
+325 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+No emails were sent this time.
+42 email(s) held back — it's outside business hours for those prospects right now.
+
+Total plumbing leads found in Kapaa so far: 16
+
+
+--- 2026-09-21 09:57:07.978601 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.9s in use.
+Searching for plumbing businesses in Kawaihae, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 80.5s in use.
+No new businesses found. Kawaihae appears to be fully covered for plumbing right now.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+There was nothing new to research this time.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 1.9s in use.
+325 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 160.7s in use.
+Sent 42 email(s) successfully.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Kawaihae so far: 0
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-21 10:57:03.030452 ---
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.0s in use.
+Searching for plumbing businesses in Lahaina, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 94.0s in use.
+Found 4 new business(es). That's likely all of them for Lahaina.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 27.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 13.5s in use.
+Completed research on 4 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 2.8s in use.
+1 business(es) are ready to be emailed.
+328 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 6.8s in use.
+Sent 1 email(s) successfully.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Lahaina so far: 4
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-21 11:08:12.416290 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.0s in use.
+Searching for plumbing businesses in Laie, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 90.9s in use.
+Found 3 new business(es). That's likely all of them for Laie.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.1s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 27.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.0s in use.
+Completed research on 3 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 1.4s in use.
+331 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.4s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Laie so far: 3
+[db-diag] Connection returned to pool after 0.7s in use.
+
+
+--- 2026-09-21 11:17:16.372016 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.4s in use.
+Searching for plumbing businesses in Wahiawa, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 79.0s in use.
+Found 3 new business(es). That's likely all of them for Wahiawa.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 19.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+Completed research on 3 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 2.7s in use.
+334 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 4.3s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Wahiawa so far: 3
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-21 21:19:10.414232 ---
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 3.4s in use.
+Searching for plumbing businesses in Kaneohe, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 250.5s in use.
+No new businesses found. Kaneohe appears to be fully covered for plumbing right now.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 19.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 43.3s in use.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 79.2s in use.
+Completed research on 2 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 2.7s in use.
+336 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 3.8s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Kaneohe so far: 49
+[db-diag] Connection returned to pool after 1.0s in use.
+
+
+--- 2026-09-21 21:21:31.595937 ---
+[db-diag] Connection returned to pool after 458.9s in use.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.8s in use.
+Searching for plumbing businesses in Kapaa, HI...
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 85.3s in use.
+Found 1 new business(es). That's likely all of them for Kapaa.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.2s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+Completed research on 1 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 4.2s in use.
+337 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 5.4s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Kapaa so far: 17
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-21 21:23:42.205183 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.8s in use.
+Searching for plumbing businesses in Kawaihae, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 40.7s in use.
+No new businesses found. Kawaihae appears to be fully covered for plumbing right now.
+
+Researching newly found businesses...
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+There was nothing new to research this time.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 9.3s in use.
+337 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 9.3s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Kawaihae so far: 0
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-21 21:32:26.621880 ---
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.9s in use.
+Searching for plumbing businesses in Lahaina, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 79.5s in use.
+No new businesses found. Lahaina appears to be fully covered for plumbing right now.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+There was nothing new to research this time.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 7.3s in use.
+337 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 5.9s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Lahaina so far: 4
+[db-diag] Connection returned to pool after 0.7s in use.
+
+
+--- 2026-09-21 21:36:19.853942 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.0s in use.
+Searching for plumbing businesses in Laie, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 82.0s in use.
+No new businesses found. Laie appears to be fully covered for plumbing right now.
+
+Researching newly found businesses...
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+There was nothing new to research this time.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 2.7s in use.
+337 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.3s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 3.4s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Laie so far: 3
+[db-diag] Connection returned to pool after 2.0s in use.
+
+
+--- 2026-09-21 21:39:26.856158 ---
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.3s in use.
+Searching for plumbing businesses in Wahiawa, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 80.4s in use.
+No new businesses found. Wahiawa appears to be fully covered for plumbing right now.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+There was nothing new to research this time.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 3.4s in use.
+337 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 5.3s in use.
+No emails were sent this time.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Wahiawa so far: 3
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-21 21:43:22.394130 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.3s in use.
+Searching for plumbing businesses in Wailuku, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 104.3s in use.
+Found 5 new business(es). That's likely all of them for Wailuku.
+
+Researching newly found businesses...
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 10.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.1s in use.
+Completed research on 5 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 7.6s in use.
+1 business(es) are ready to be emailed.
+341 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 7.8s in use.
+No emails were sent this time.
+1 email(s) held back — it's outside business hours for those prospects right now.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Wailuku so far: 5
+[db-diag] Connection returned to pool after 2.6s in use.
+
+
+--- 2026-09-22 11:50:29.412389 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.7s in use.
+Searching for plumbing businesses in Waimea, HI...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 91.0s in use.
+Found 4 new business(es). That's likely all of them for Waimea.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 19.2s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 9.9s in use.
+Completed research on 4 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 3.3s in use.
+1 business(es) are ready to be emailed.
+344 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 144.0s in use.
+Sent 45 email(s) successfully.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in Waimea so far: 4
+[db-diag] Connection returned to pool after 0.6s in use.
+
+
+--- 2026-09-22 21:01:02.055149 ---
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.0s in use.
+Searching for plumbing businesses in New York, NY...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 187.1s in use.
+Found 19 new business(es). That's likely all of them for New York.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 6.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 35.4s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 4.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 23.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 13.3s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 16.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 13.3s in use.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 13.3s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 16.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 20.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 11.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.1s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 13.4s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 45.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 9.1s in use.
+Completed research on 19 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 1.3s in use.
+411 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+Something went wrong while running the pipeline: Unable to find the server at gmail.googleapis.com
+
+
+--- 2026-09-22 21:25:37.932178 ---
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.1s in use.
+Searching for plumbing businesses in New York, NY...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 197.2s in use.
+Found 14 new business(es). That's likely all of them for New York.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 7.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 120.8s in use.
+Found 1 new business(es). That's likely all of them for New York.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 14.2s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 4.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 5.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 7.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.2s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 10.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 31.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 22.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.5s in use.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 16.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.4s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 16.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.1s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 11.2s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 3.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 11.5s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 3.1s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 14.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 5.4s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.1s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 4.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 122.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 12.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.4s in use.
+Completed research on 16 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 135.9s in use.
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 10.5s in use.
+5 business(es) are ready to be emailed.
+423 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 12.1s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 1.0s in use.
+Completed research on 16 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 8.0s in use.
+423 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.7s in use.
+[db-diag] Checked out a connection from the pool.
+Something went wrong while running the pipeline: Unable to find the server at gmail.googleapis.com
+
+
+--- 2026-09-23 10:49:23.908129 ---
+[db-diag] Opening a NEW physical connection to the database...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 2.0s in use.
+Searching for plumbing businesses in New York, NY...
+[db-diag] Checked out a connection from the pool.
+[scrape-diag] Raw candidates found by Maps scroll: 119
+[scrape-diag] Skipped as already-known: 108 | Skipped on page-visit timeout: 0 | Successfully scraped: 11
+[db-diag] Connection returned to pool after 152.0s in use.
+Found 6 new business(es). That's likely all of them for New York.
+
+Researching newly found businesses...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.7s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 11.8s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 15.3s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 9.9s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 14.3s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 3.0s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 5.1s in use.
+Completed research on 8 business(es).
+[db-diag] Checked out a connection from the pool.
+
+Preparing eligible businesses for campaign 'Testing'...
+[db-diag] Connection returned to pool after 3.5s in use.
+1 business(es) are ready to be emailed.
+430 business(es) had no email address found — check the Leads tab and contact them by phone instead.
+
+Sending emails...
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 0.6s in use.
+[db-diag] Checked out a connection from the pool.
+[db-diag] Connection returned to pool after 13.0s in use.
+No emails were sent this time.
+24 email(s) held back — it's outside business hours for those prospects right now.
+[db-diag] Checked out a connection from the pool.
+
+Total plumbing leads found in New York so far: 110
+[db-diag] Connection returned to pool after 0.7s in use.
+

@@ -38,6 +38,8 @@ def _get_credentials(sender_email: str = None) -> Credentials:
     """
     Loads cached OAuth token for the given sender account. Each Gmail
     account needs its own token file since each was authorized separately.
+    If a cached token's refresh fails (e.g. revoked/invalid_grant), this
+    falls back to a fresh interactive authorization instead of crashing.
     """
     token_path = f"secrets/token_{sender_email}.json" if sender_email else TOKEN_PATH
 
@@ -45,15 +47,23 @@ def _get_credentials(sender_email: str = None) -> Credentials:
     if os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path, SCOPES)
 
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
-            creds = flow.run_local_server(port=0)
+    needs_new_auth = not creds or not creds.valid
 
-        with open(token_path, "w") as token_file:
-            token_file.write(creds.to_json())
+    if creds and creds.expired and creds.refresh_token:
+        try:
+            creds.refresh(Request())
+            needs_new_auth = False
+        except Exception:
+            # Refresh token itself is dead (revoked/invalid_grant) —
+            # nothing to do but re-authorize interactively.
+            needs_new_auth = True
+
+    if needs_new_auth:
+        flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
+        creds = flow.run_local_server(port=0)
+
+    with open(token_path, "w") as token_file:
+        token_file.write(creds.to_json())
 
     return creds
 

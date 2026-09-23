@@ -25,7 +25,20 @@ from app.run_agent import run_pipeline_captured
 from src.replies.reply_detector import check_all_active_campaigns_captured
 from src.email.scheduler import get_due_actions
 
-init_db()
+
+@st.cache_resource
+def _ensure_db_initialized():
+    # init_db() just checks/creates tables — harmless to call more than
+    # once, but each call is a round-trip to Supabase. Streamlit reruns
+    # this whole script on every click, so without caching this ran on
+    # every single interaction. st.cache_resource runs it exactly once
+    # per server process instead, and every later rerun reuses the
+    # cached result rather than re-checking.
+    init_db()
+    return True
+
+
+_ensure_db_initialized()
 
 st.set_page_config(
     page_title="AI Outreach Agent",
@@ -152,13 +165,24 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 /* ---- Buttons ---- */
 .stButton > button {
     border-radius: 9px; font-weight: 700; border: 1px solid var(--border-strong);
-    color: var(--ink); padding: 8px 18px;
+    background-color: #FFFFFF !important;
+    color: var(--ink) !important;
+    padding: 8px 18px;
 }
-.stButton > button:hover { border-color: var(--accent); color: var(--accent-dark); }
+.stButton > button:hover {
+    border-color: var(--accent) !important;
+    color: var(--accent-dark) !important;
+    background-color: var(--accent-soft) !important;
+}
 .stButton > button[kind="primary"] {
-    background-color: var(--accent); border-color: var(--accent); color: #FFFFFF;
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #FFFFFF !important;
 }
-.stButton > button[kind="primary"]:hover { background-color: var(--accent-dark); color: #FFFFFF; }
+.stButton > button[kind="primary"]:hover {
+    background-color: var(--accent-dark) !important;
+    color: #FFFFFF !important;
+}
 
 /* ---- Text inputs / search / selects: strong visible labels + placeholders ---- */
 .stTextInput label, .stSelectbox label, .stNumberInput label, .stCheckbox label p {
@@ -411,10 +435,28 @@ elif page == "Operations":
         remaining_today = max(0, total_capacity - already_sent)
         room_for_new_leads = max(0, remaining_today - total_followups_due)
 
-        fc1, fc2, fc3 = st.columns(3)
-        fc1.metric("Follow-ups due today", total_followups_due)
-        fc2.metric("Remaining capacity today", remaining_today)
-        fc3.metric("Room for new leads", room_for_new_leads)
+        from datetime import date as _date, datetime as _dtt
+        today_start_fc = _dtt.combine(_date.today(), _dtt.min.time())
+        emails_found_today = (
+            session.query(Lead)
+            .filter(Lead.email.isnot(None), Lead.created_at >= today_start_fc)
+            .count()
+        )
+        # Leads with an email that are still waiting to be sent —
+        # RESEARCHED (not yet queued into a campaign) or QUEUED
+        # (queued but not yet sent). This is the real "pending" count.
+        pending_unsent = (
+            session.query(Lead)
+            .filter(Lead.status.in_(["RESEARCHED", "QUEUED"]), Lead.email.isnot(None))
+            .count()
+        )
+
+        fc1, fc2, fc3, fc4, fc5 = st.columns(5)
+        fc1.metric("Emails found today", emails_found_today)
+        fc2.metric("Ready but not sent yet", pending_unsent)
+        fc3.metric("Follow-ups due today", total_followups_due)
+        fc4.metric("Remaining capacity today", remaining_today)
+        fc5.metric("Room for new leads", room_for_new_leads)
 
         if room_for_new_leads <= 0:
             st.warning(
@@ -425,6 +467,35 @@ elif page == "Operations":
             st.info(f"Only {room_for_new_leads} slot(s) left for new leads today — a small city or a partial batch will fit.")
         else:
             st.success(f"You have room for up to {room_for_new_leads} new leads today after follow-ups are handled.")
+
+        st.write("")
+    section_header("", "Follow-up Load Per Account")
+    with st.container(border=True):
+        st.markdown(
+            '<p style="color:#2A3142;font-weight:500;font-size:14px;">'
+            "Shows how many emails each sender account has sent today, "
+            "against its daily limit."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+
+        all_accounts = session.query(SenderAccount).all()
+
+        if all_accounts:
+            # compute_capacity() resets sent_today to 0 if the day has
+            # rolled over since this account last sent anything —
+            # without calling it here first, an account that hasn't
+            # sent anything yet today would still show yesterday's
+            # leftover count.
+            for acc in all_accounts:
+                compute_capacity(acc)
+            session.commit()
+
+            cols = st.columns(len(all_accounts))
+            for col, acc in zip(cols, all_accounts):
+                col.metric(acc.email.split("@")[0], f"{acc.sent_today} sent today", f"limit: {acc.daily_limit}/day")
+        else:
+            st.markdown('<p style="color:#2A3142;">No sender accounts configured yet.</p>', unsafe_allow_html=True)
 
     st.write("")
     section_header("▶️", "Run Pipeline")
@@ -458,6 +529,67 @@ elif page == "Operations":
             st.markdown("**Result:**")
             st.code(log, language=None)
 
+            from datetime import datetime as _dt
+            with open("pipeline_log.txt", "a", encoding="utf-8") as f:
+                f.write(f"\n--- {_dt.now()} ---\n{log}\n")
+    st.write("")
+    section_header("", "Send All Pending Now")
+    with st.container(border=True):
+        st.markdown(
+            '<p style="color:#2A3142;font-weight:500;font-size:14px;">'
+            "Sends every due email right now — new leads that already have an "
+            "email, plus follow-ups that are due. No new discovery/research "
+            "happens here, just sending."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+
+        all_active_for_send = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+        send_filter_options = ["All active campaigns"] + [f"{c.name} (#{c.id})" for c in all_active_for_send]
+        send_filter_choice = st.selectbox("Send for", send_filter_options, key="send_all_filter")
+
+        if st.button("Send All Pending Emails", type="primary"):
+            with st.spinner("Sending all due emails..."):
+                from src.db.session import SessionLocal as _SL
+                from app.run_agent import run_send_cycle as _rsc
+
+                send_session = _SL()
+
+                if send_filter_choice == "All active campaigns":
+                    campaigns_to_send = send_session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+                else:
+                    target_id = int(send_filter_choice.split("#")[1].rstrip(")"))
+                    campaigns_to_send = send_session.query(Campaign).filter(Campaign.id == target_id).all()
+
+                combined_summary = {
+                    "sent": 0, "skipped_no_capacity": 0, "skipped_outside_window": 0,
+                    "skipped_no_template": 0, "skipped_suppressed": 0,
+                }
+                for c in campaigns_to_send:
+                    result = _rsc(send_session, c)
+                    for key in combined_summary:
+                        val = result.get(key, 0)
+                        if val and val > 0:
+                            combined_summary[key] += val
+                send_session.close()
+
+            st.success(f"Sent {combined_summary['sent']} email(s).")
+
+            details = []
+            if combined_summary["skipped_no_capacity"] > 0:
+                details.append(f"{combined_summary['skipped_no_capacity']} email(s) skipped — the account that should send them is out of capacity today.")
+            if combined_summary["skipped_outside_window"] > 0:
+                details.append(f"{combined_summary['skipped_outside_window']} email(s) held back — it's outside business hours for those prospects right now.")
+            if combined_summary["skipped_no_template"] > 0:
+                details.append(f"{combined_summary['skipped_no_template']} email(s) skipped — no matching template found. Add one from the Campaigns tab.")
+            if combined_summary["skipped_suppressed"] > 0:
+                details.append(f"{combined_summary['skipped_suppressed']} email(s) skipped — those contacts are on the do-not-contact list.")
+
+            if details:
+                st.markdown("**Details:**")
+                for d in details:
+                    st.markdown(f"- {d}")
+
     st.write("")
     section_header("✉️", "Check for Replies")
     with st.container(border=True):
@@ -487,31 +619,35 @@ elif page == "Operations":
             st.success("Sending window updated.")
 
     st.write("")
-    section_header("🌙", "Your Quiet Hours (for reply acknowledgements)")
-    with st.container(border=True):
-        st.markdown('<p style="color:#2A3142;font-weight:500;font-size:14px;">If a reply comes in during these hours (your own local time), a brief \'I\'ll get back to you\' note is sent automatically.</p>', unsafe_allow_html=True)
-        quiet = settings.get("your_quiet_hours", {"start_hour": 23, "end_hour": 8, "timezone": "Asia/Karachi"})
-        col1, col2, col3 = st.columns(3)
-        q_start = col1.number_input("Quiet hours start", min_value=0, max_value=23, value=quiet["start_hour"])
-        q_end = col2.number_input("Quiet hours end", min_value=0, max_value=23, value=quiet["end_hour"])
-        q_tz = col3.text_input("Your timezone", value=quiet.get("timezone", "Asia/Karachi"))
-        if st.button("Save Quiet Hours"):
-            settings["your_quiet_hours"] = {"start_hour": q_start, "end_hour": q_end, "timezone": q_tz}
-            save_settings(settings)
-            st.success("Quiet hours updated.")
-
-    st.write("")
     section_header("🌎", "Target Cities")
     with st.container(border=True):
-        st.markdown('<p style="color:#2A3142;font-weight:500;font-size:14px;">Cities the pipeline discovers leads in. Add as many as you want across the US.</p>', unsafe_allow_html=True)
-        for i, c in enumerate(cities):
-            col1, col2 = st.columns([4, 1])
-            col1.write(f"📍 {c['city']}, {c['state']}")
-            if col2.button("Remove", key=f"remove_city_{i}"):
-                cities.pop(i)
-                settings["target_cities"] = cities
-                save_settings(settings)
-                st.rerun()
+        st.markdown('<p style="color:#2A3142;font-weight:500;font-size:14px;">Cities the pipeline discovers leads in. Search below to check if a city is already added, or add a new one.</p>', unsafe_allow_html=True)
+
+        search_city = st.text_input(
+            "Search cities", placeholder="Type a city name to check or filter...", key="city_search_input"
+        )
+
+        if search_city.strip():
+            matching = [
+                (i, c) for i, c in enumerate(cities)
+                if search_city.strip().lower() in c["city"].lower()
+            ]
+            if matching:
+                for i, c in matching:
+                    col1, col2 = st.columns([4, 1])
+                    col1.write(f"📍 {c['city']}, {c['state']}")
+                    if col2.button("Remove", key=f"remove_city_{i}"):
+                        cities.pop(i)
+                        settings["target_cities"] = cities
+                        save_settings(settings)
+                        st.rerun()
+            else:
+                st.markdown(
+                    '<p style="color:#2A3142;font-weight:500;font-size:14px;">Not added yet — you can add it below.</p>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.caption(f"{len(cities)} city/cities saved (type above to view/search).")
 
         st.write("")
         col1, col2, col3 = st.columns([2, 1, 1])

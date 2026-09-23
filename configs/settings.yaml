@@ -2,16 +2,6 @@ sending_window:
   end_hour: 22
   start_hour: 9
 target_cities:
-- city: Austin
-  state: TX
-- city: Dallas
-  state: TX
-- city: Houston
-  state: TX
-- city: New York
-  state: NY
-- city: San Antonio
-  state: TX
 - city: Apalachicola
   state: FL
 - city: Bartow
@@ -28,6 +18,82 @@ target_cities:
   state: FL
 - city: Cocoa Beach
   state: FL
+- city: Cocoa-Rockledge
+  state: FL
+- city: Coral Gables
+  state: FL
+- city: Daytona Beach
+  state: FL
+- city: De Land
+  state: FL
+- city: Deerfield Beach
+  state: FL
+- city: Delray Beach
+  state: FL
+- city: Anchorage
+  state: AK
+- city: Cordova
+  state: AK
+- city: Fairbanks
+  state: AK
+- city: Haines
+  state: AK
+- city: Homer
+  state: AK
+- city: Juneau
+  state: AK
+- city: Ketchikan
+  state: AK
+- city: Kodiak
+  state: AK
+- city: Kotzebue
+  state: AK
+- city: Nome
+  state: AK
+- city: Palmer
+  state: AK
+- city: Seward
+  state: AK
+- city: Sitka
+  state: AK
+- city: Skagway
+  state: AK
+- city: Valdez
+  state: AK
+- city: Hanalei
+  state: HI
+- city: Hilo
+  state: HI
+- city: Honaunau
+  state: HI
+- city: Honolulu
+  state: HI
+- city: Kahului
+  state: HI
+- city: Kaneohe
+  state: HI
+- city: Kapaa
+  state: HI
+- city: Kawaihae
+  state: HI
+- city: Lahaina
+  state: HI
+- city: Laie
+  state: HI
+- city: Wahiawa
+  state: HI
+- city: Wailuku
+  state: HI
+- city: Waimea
+  state: HI
+- city: New York
+  state: NY
+- city: Abilene
+  state: TX
+- city: Alpine
+  state: TX
+- city: Amarillo
+  state: TX
 your_quiet_hours:
   end_hour: 8
   start_hour: 23

@@ -53,6 +53,12 @@ class Lead(Base):
     source: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # google_search/maps/manual
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     status: Mapped[str] = mapped_column(String, default="NEW")  # NEW/RESEARCHED/QUEUED/CONTACTED/...
+    # How many times a website fetch has failed for this lead (timeout,
+    # Cloudflare block, dead site, etc). After MAX_RESEARCH_ATTEMPTS
+    # (see run_agent.py), we stop retrying and mark it RESEARCHED with
+    # no email rather than re-paying the fetch timeout on every future
+    # pipeline run, forever, for a site that keeps failing.
+    research_fetch_failures: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # One lead has AT MOST one research record. back_populates keeps both
     # sides of the relationship in sync automatically (lead.research and

@@ -85,23 +85,30 @@ def _is_plausible_email(email: str) -> bool:
     return True
 
 
-def analyze_website(url: str, timeout: float = 10.0) -> WebsiteFacts:
+def analyze_website(url: str, timeout: float = 25.0) -> WebsiteFacts:
     """
     Fetches a page and extracts structured facts from it.
     Returns fetch_succeeded=False (all other fields empty/None) if the
     site is unreachable — the caller must check this before trusting
     any other field.
     """
-    try:
-        response = httpx.get(
-            url,
-            timeout=timeout,
-            follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0"},
-        )
-        html = response.text
-    except (httpx.RequestError, httpx.HTTPStatusError):
-        return WebsiteFacts(fetch_succeeded=False)
+    html = None
+    for attempt in range(2):  # try twice before giving up — many failures
+                                # are transient network hiccups, not
+                                # permanent site issues
+        try:
+            response = httpx.get(
+                url,
+                timeout=timeout,
+                follow_redirects=True,
+                headers={"User-Agent": "Mozilla/5.0"},
+            )
+            html = response.text
+            break
+        except (httpx.RequestError, httpx.HTTPStatusError):
+            if attempt == 0:
+                continue  # retry once
+            return WebsiteFacts(fetch_succeeded=False)
 
     soup = BeautifulSoup(html, "html.parser")
     visible_text = soup.get_text(separator=" ", strip=True)

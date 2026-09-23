@@ -58,14 +58,14 @@ def _extract_body_text(payload: dict) -> str:
     return ""
 
 
-def check_for_replies(session: Session, campaign: Campaign, max_results: int = 20) -> dict:
+def check_for_replies(session: Session, campaign: Campaign, sender_account_email: str = None, max_results: int = 20) -> dict:
     """
     Fetches recent unread messages from the sender's inbox, matches each
     to a Lead by sender email, classifies the reply, logs a REPLY
     EmailEvent, and transitions the lead to STOPPED (per the requirement
     that ANY reply immediately halts automated follow-ups).
     """
-    creds = _get_credentials()
+    creds = _get_credentials(sender_account_email)
     service = build("gmail", "v1", credentials=creds)
 
     summary = {"checked": 0, "matched_replies": 0, "unmatched": 0}
@@ -172,33 +172,43 @@ if __name__ == "__main__":
     session.close()
 
 def check_all_active_campaigns_captured() -> str:
-    """Runs reply-check for every ACTIVE campaign, captures output as string."""
+    """
+    Runs reply-check for every ACTIVE campaign, across ALL sender
+    accounts — since a reply could arrive in any account's inbox
+    depending on which account sent the original email.
+    """
     from src.db.session import SessionLocal, init_db
-    from src.db.models import Campaign
+    from src.db.models import Campaign, SenderAccount
 
     buffer = io.StringIO()
     with redirect_stdout(buffer):
         init_db()
         session = SessionLocal()
         campaigns = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+        accounts = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
+
         if not campaigns:
             print("No active campaigns to check.")
+        if not accounts:
+            print("No active sender accounts to check.")
+
         for campaign in campaigns:
-            try:
-                result = check_for_replies(session, campaign)
-                if result["matched_replies"] > 0:
-                    print(
-                        f"'{campaign.name}': Found {result['matched_replies']} new "
-                        f"repl{'y' if result['matched_replies'] == 1 else 'ies'} — "
-                        "follow-ups stopped for those businesses. Check the Leads tab or your inbox for details."
-                    )
-                else:
-                    print(f"'{campaign.name}': No new replies since last check.")
-                if result["unmatched"] > 0:
-                    print(
-                        f"({result['unmatched']} other unread email(s) in your inbox weren't from any known lead — ignored.)"
-                    )
-            except Exception as e:
-                print(f"'{campaign.name}': Something went wrong while checking replies — {e}")
+            for account in accounts:
+                try:
+                    result = check_for_replies(session, campaign, sender_account_email=account.email)
+                    if result["matched_replies"] > 0:
+                        print(
+                            f"'{campaign.name}' ({account.email}): Found {result['matched_replies']} new "
+                            f"repl{'y' if result['matched_replies'] == 1 else 'ies'} — "
+                            "follow-ups stopped for those businesses."
+                        )
+                    else:
+                        print(f"'{campaign.name}' ({account.email}): No new replies.")
+                    if result["unmatched"] > 0:
+                        print(
+                            f"  ({result['unmatched']} other unread email(s) in {account.email} weren't from any known lead — ignored.)"
+                        )
+                except Exception as e:
+                    print(f"'{campaign.name}' ({account.email}): Something went wrong — {e}")
         session.close()
     return buffer.getvalue()
