@@ -8,6 +8,7 @@ This is the piece that turns reply_classifier.py from a standalone
 function into something the pipeline actually uses.
 """
 import io
+import time
 from contextlib import redirect_stdout
 import base64
 from datetime import datetime, timezone
@@ -68,7 +69,7 @@ def check_for_replies(session: Session, campaign: Campaign, sender_account_email
     creds = _get_credentials(sender_account_email)
     service = build("gmail", "v1", credentials=creds)
 
-    summary = {"checked": 0, "matched_replies": 0, "unmatched": 0}
+    summary = {"checked": 0, "matched_replies": 0, "unmatched": 0, "matches": []}
 
     results = service.users().messages().list(
         userId="me", labelIds=["INBOX", "UNREAD"], maxResults=max_results
@@ -137,9 +138,15 @@ def check_for_replies(session: Session, campaign: Campaign, sender_account_email
             try:
                 send_email(
                     to_address=lead.email,
-                    subject=f"Re: Quick note about {lead.business_name}",
+                    subject=f"Re: {lead.email_subject or f'Quick note about {lead.business_name}'}",
                     body=night_response.body,
-                    sender_address="marketingwithusman9@gmail.com",
+                    # Use the account whose inbox this reply actually
+                    # came in on — not a hardcoded account — so the
+                    # acknowledgement comes from the same conversation
+                    # the prospect is already in.
+                    sender_address=sender_account_email,
+                    in_reply_to_message_id=lead.email_message_id,
+                    thread_id=lead.email_thread_id,
                 )
             except Exception:
                 pass  # Don't let a failed acknowledgement break reply detection
@@ -150,6 +157,7 @@ def check_for_replies(session: Session, campaign: Campaign, sender_account_email
         ).execute()
 
         summary["matched_replies"] += 1
+        summary["matches"].append({"business_name": lead.business_name, "category": category})
 
     session.commit()
     return summary
@@ -171,10 +179,16 @@ if __name__ == "__main__":
 
     session.close()
 
+def _format_duration(seconds: float) -> str:
+    total = int(seconds)
+    minutes, secs = divmod(total, 60)
+    return f"{minutes}m {secs}s" if minutes else f"{secs}s"
+
+
 def check_all_active_campaigns_captured() -> str:
     """
     Runs reply-check for every ACTIVE campaign, across ALL sender
-    accounts — since a reply could arrive in any account's inbox
+    accounts - since a reply could arrive in any account's inbox
     depending on which account sent the original email.
     """
     from src.db.session import SessionLocal, init_db
@@ -182,33 +196,57 @@ def check_all_active_campaigns_captured() -> str:
 
     buffer = io.StringIO()
     with redirect_stdout(buffer):
+        started_at = time.time()
         init_db()
         session = SessionLocal()
         campaigns = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
         accounts = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
 
-        if not campaigns:
-            print("No active campaigns to check.")
-        if not accounts:
-            print("No active sender accounts to check.")
+        if not campaigns or not accounts:
+            if not campaigns:
+                print("No active campaigns to check.")
+            if not accounts:
+                print("No active sender accounts to check.")
+            session.close()
+            return buffer.getvalue()
+
+        total_checked = 0
+        total_unmatched = 0
+        all_matches = []
+        errors = []
 
         for campaign in campaigns:
             for account in accounts:
                 try:
                     result = check_for_replies(session, campaign, sender_account_email=account.email)
-                    if result["matched_replies"] > 0:
-                        print(
-                            f"'{campaign.name}' ({account.email}): Found {result['matched_replies']} new "
-                            f"repl{'y' if result['matched_replies'] == 1 else 'ies'} — "
-                            "follow-ups stopped for those businesses."
-                        )
-                    else:
-                        print(f"'{campaign.name}' ({account.email}): No new replies.")
-                    if result["unmatched"] > 0:
-                        print(
-                            f"  ({result['unmatched']} other unread email(s) in {account.email} weren't from any known lead — ignored.)"
-                        )
+                    total_checked += result["checked"]
+                    total_unmatched += result["unmatched"]
+                    all_matches.extend(result["matches"])
                 except Exception as e:
-                    print(f"'{campaign.name}' ({account.email}): Something went wrong — {e}")
+                    errors.append(f"{campaign.name} ({account.email}): {e}")
+
         session.close()
+        elapsed = _format_duration(time.time() - started_at)
+
+        category_counts = {}
+        for m in all_matches:
+            category_counts[m["category"]] = category_counts.get(m["category"], 0) + 1
+        category_str = ", ".join(f"{cat}: {count}" for cat, count in category_counts.items())
+
+        print(f"Reply check finished in {elapsed}")
+        print(f"  Accounts checked         : {len(accounts)}")
+        print(f"  Unread messages checked  : {total_checked}")
+        print(f"  New replies matched      : {len(all_matches)}" + (f"  ({category_str})" if category_str else ""))
+        print(f"  Unrelated/unmatched mail : {total_unmatched}")
+        if all_matches:
+            print()
+            print("  Replies (follow-ups stopped for these):")
+            for m in all_matches:
+                print(f"    - {m['business_name']} : {m['category']}")
+        if errors:
+            print()
+            print("  Errors:")
+            for err in errors:
+                print(f"    - {err}")
+
     return buffer.getvalue()

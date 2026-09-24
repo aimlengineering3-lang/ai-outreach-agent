@@ -439,18 +439,38 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
             + "\n\n---\nIf you'd prefer not to hear from us again, just reply with \"unsubscribe\" and we'll stop reaching out."
         )
 
+        is_first_email = action.action_type == "SENT"
+        subject = (
+            f"Quick note about {lead.business_name}"
+            if is_first_email
+            else f"Re: {lead.email_subject or f'Quick note about {lead.business_name}'}"
+        )
+
         send_result = send_email(
             to_address=lead.email,
-            subject=f"Quick note about {lead.business_name}",
+            subject=subject,
             body=email_body_with_footer,
             sender_address=sender_account.email,
+            in_reply_to_message_id=None if is_first_email else lead.email_message_id,
+            thread_id=None if is_first_email else lead.email_thread_id,
         )
+
+        if is_first_email:
+            # Save these so every future follow-up to this lead can
+            # thread onto this exact email instead of starting fresh.
+            lead.email_subject = subject
+            lead.email_message_id = send_result.get("message_id")
+            lead.email_thread_id = send_result.get("gmail_thread_id")
 
         event = EmailEvent(
             lead_id=lead.id, campaign_id=campaign.id, sender_account_id=sender_account.id,
             event_type=action.action_type, template_used_id=template.id,
             scheduled_for=datetime.now(timezone.utc), sent_at=datetime.now(timezone.utc),
-            notes=json.dumps({"test_mode": send_result.get("test_mode"), "message_id": send_result.get("message_id")}),
+            notes=json.dumps({
+                "test_mode": send_result.get("test_mode"),
+                "message_id": send_result.get("message_id"),
+                "gmail_id": send_result.get("gmail_id"),
+            }),
         )
         session.add(event)
 
@@ -477,76 +497,55 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
 # ---------------------------------------------------------------------
 # MAIN LOOP
 # ---------------------------------------------------------------------
+def _format_duration(seconds: float) -> str:
+    total = int(seconds)
+    minutes, secs = divmod(total, 60)
+    return f"{minutes}m {secs}s" if minutes else f"{secs}s"
+
+
 def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
     init_db()
     session = SessionLocal()
+    started_at = time.time()
 
-    print(f"Searching for {niche} businesses in {city}, {state}...")
     new_count, reached_limit = discover_and_save(session, niche, city, state, max_results=150)
 
-    if new_count == 0 and not reached_limit:
-        print(f"No new businesses found. {city} appears to be fully covered for {niche} right now.")
-    elif reached_limit:
-        print(f"Found {new_count} new business(es). There are likely more out there — run this city again to keep finding them.")
-    else:
-        print(f"Found {new_count} new business(es). That's likely all of them for {city}.")
-
-    print("")
-    print("Researching newly found businesses...")
     new_leads = session.query(Lead).filter(
         Lead.status == LeadStatus.NEW.value, Lead.niche == niche, Lead.city == city,
     ).all()
     researched_count = sum(1 for lead in new_leads if research_lead(session, lead))
-    if researched_count > 0:
-        print(f"Completed research on {researched_count} business(es).")
-    else:
-        print("There was nothing new to research this time.")
+    emails_found = sum(1 for lead in new_leads if lead.email)
+    no_email_found = len(new_leads) - emails_found
 
     if campaign_id:
         campaign = session.query(Campaign).filter(Campaign.id == campaign_id, Campaign.status == "ACTIVE").first()
     else:
         campaign = session.query(Campaign).filter(Campaign.niche == niche, Campaign.status == "ACTIVE").first()
 
-    if not campaign:
-        print("")
-        print(f"No active campaign found for '{niche}'. Create and activate one from the Campaigns tab first.")
-        session.close()
-        return
-
-    print("")
-    print(f"Preparing eligible businesses for campaign '{campaign.name}'...")
-    result = queue_researched_leads(session, campaign)
-    if result["queued"] > 0:
-        print(f"{result['queued']} business(es) are ready to be emailed.")
-    if result["needs_manual_review"] > 0:
-        print(
-            f"{result['needs_manual_review']} business(es) had no email address found — "
-            "check the Leads tab and contact them by phone instead."
-        )
-
-    print("")
-    print("Sending emails...")
-    summary = run_send_cycle(session, campaign)
-
-    if summary["sent"] > 0:
-        print(f"Sent {summary['sent']} email(s) successfully.")
-    else:
-        print("No emails were sent this time.")
-
-    if summary.get("skipped_no_capacity") == -1:
-        print("No active sender account with available capacity was found.")
-    elif summary.get("skipped_no_capacity", 0) > 0:
-        print(f"{summary['skipped_no_capacity']} email(s) skipped — the account that should send their follow-up is out of capacity today.")
-    if summary["skipped_outside_window"] > 0:
-        print(f"{summary['skipped_outside_window']} email(s) held back — it's outside business hours for those prospects right now.")
-    if summary["skipped_no_template"] > 0:
-        print(f"{summary['skipped_no_template']} email(s) skipped — no matching template found for that situation. Add one from the Campaigns tab.")
-    if summary["skipped_suppressed"] > 0:
-        print(f"{summary['skipped_suppressed']} email(s) skipped — those contacts are on the do-not-contact list.")
+    summary = {"sent": 0, "skipped_outside_window": 0}
+    if campaign:
+        queue_researched_leads(session, campaign)
+        summary = run_send_cycle(session, campaign)
 
     total_in_city = session.query(Lead).filter(Lead.niche == niche, Lead.city == city).count()
-    print("")
-    print(f"Total {niche} leads found in {city} so far: {total_in_city}")
+    elapsed = _format_duration(time.time() - started_at)
+
+    print()
+    print(f"{city}, {state} — {niche} pipeline finished in {elapsed}")
+    more_note = "  (more may be available — run again to keep finding them)" if reached_limit else ""
+    print(f"  New businesses found      : {new_count}{more_note}")
+    print(f"  Businesses researched     : {researched_count}")
+    print(f"  Emails found              : {emails_found}")
+    print(f"  No email found            : {no_email_found}  (see Manual Review tab)")
+    if campaign:
+        print(f"  Emails sent this run      : {summary['sent']}")
+        if summary.get("skipped_no_capacity") == -1:
+            print("  Note: no active sender account has capacity right now.")
+        if summary.get("skipped_outside_window"):
+            print(f"  Held back (outside hours) : {summary['skipped_outside_window']}")
+    else:
+        print(f"  Emails sent this run      : 0  (no active campaign for '{niche}' — create one in the Campaigns tab)")
+    print(f"  Total {niche} leads in {city} so far: {total_in_city}")
 
     session.close()
 

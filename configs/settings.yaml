@@ -94,6 +94,32 @@ target_cities:
   state: TX
 - city: Amarillo
   state: TX
+- city: Arlington
+  state: TX
+- city: Austin
+  state: TX
+- city: Baytown
+  state: TX
+- city: Beaumont
+  state: TX
+- city: Big Spring
+  state: TX
+- city: Borger
+  state: TX
+- city: Brownsville
+  state: TX
+- city: Bryan
+  state: TX
+- city: Canyon
+  state: TX
+- city: Cleburne
+  state: TX
+- city: College Station
+  state: TX
+- city: Corpus Christi
+  state: TX
+- city: Crystal City
+  state: TX
 your_quiet_hours:
   end_hour: 8
   start_hour: 23

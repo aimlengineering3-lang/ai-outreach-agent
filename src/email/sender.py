@@ -8,6 +8,7 @@ during development.
 import os
 import base64
 from email.mime.text import MIMEText
+from email.utils import make_msgid
 from typing import Optional
 
 from google.auth.transport.requests import Request
@@ -62,6 +63,27 @@ def _get_credentials(sender_email: str = None) -> Credentials:
         flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
         creds = flow.run_local_server(port=0)
 
+        # Safety check: the interactive browser flow authorizes
+        # whichever Google account is logged in at that moment, which
+        # is NOT guaranteed to be the account we asked for — if the
+        # browser was already signed into a different one, it's easy
+        # to authorize the wrong account without noticing, and every
+        # email "sent from" this account would actually go out from
+        # that other one instead. Confirm the authorized account's own
+        # email matches before trusting these credentials.
+        if sender_email:
+            authorized_service = build("gmail", "v1", credentials=creds)
+            authorized_email = authorized_service.users().getProfile(userId="me").execute().get("emailAddress", "")
+            if authorized_email.lower() != sender_email.lower():
+                raise RuntimeError(
+                    f"OAuth authorized the wrong Google account: expected "
+                    f"'{sender_email}' but the browser signed in as "
+                    f"'{authorized_email}'. Nothing was saved or sent — "
+                    f"sign out of '{authorized_email}' in the browser "
+                    f"first, or explicitly choose '{sender_email}' on "
+                    f"Google's account picker, then try again."
+                )
+
     with open(token_path, "w") as token_file:
         token_file.write(creds.to_json())
 
@@ -74,6 +96,8 @@ def send_email(
     body: str,
     sender_address: str,
     self_test_address: Optional[str] = None,
+    in_reply_to_message_id: Optional[str] = None,
+    thread_id: Optional[str] = None,
 ) -> dict:
     """
     Sends an email via Gmail API. If TEST_MODE is True, the actual
@@ -81,6 +105,10 @@ def send_email(
     sender_address itself) regardless of what `to_address` was — this
     makes it structurally impossible to accidentally email a real
     prospect while developing.
+
+    Passing in_reply_to_message_id and thread_id (both from the lead's
+    FIRST email) makes this send land as a reply in that same thread
+    instead of arriving as a brand-new, unrelated email.
     """
     creds = _get_credentials(sender_address)
     service = build("gmail", "v1", credentials=creds)
@@ -95,14 +123,32 @@ def send_email(
     message["from"] = sender_address
     message["subject"] = subject
 
+    # We generate this ourselves (rather than reading it back from
+    # Gmail afterward) so we know it immediately and can save it on
+    # the lead for any later follow-up to reference.
+    new_message_id = make_msgid()
+    message["Message-ID"] = new_message_id
+
+    if in_reply_to_message_id:
+        message["In-Reply-To"] = in_reply_to_message_id
+        message["References"] = in_reply_to_message_id
+
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
+    send_body = {"raw": raw}
+    if thread_id:
+        # Tells Gmail to append this send to the existing thread
+        # rather than only relying on header-matching.
+        send_body["threadId"] = thread_id
+
     result = service.users().messages().send(
-        userId="me", body={"raw": raw}
+        userId="me", body=send_body
     ).execute()
 
     return {
-        "message_id": result.get("id"),
+        "message_id": new_message_id,       # RFC-822 header, for future In-Reply-To/References
+        "gmail_id": result.get("id"),         # Gmail's own internal message id (old "message_id" meaning)
+        "gmail_thread_id": result.get("threadId"),
         "actual_recipient": actual_recipient,
         "test_mode": is_test_mode(),
     }

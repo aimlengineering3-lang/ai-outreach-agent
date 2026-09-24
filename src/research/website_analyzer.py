@@ -51,6 +51,18 @@ EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
 PLACEHOLDER_EMAIL_DOMAINS = {
     "example.com", "domain.com", "yourdomain.com", "email.com",
     "test.com", "company.com", "yoursite.com", "sentry.io",
+    # Website-builder platforms' own domains — these show up in a
+    # site's footer/privacy-policy boilerplate, not as the business's
+    # actual contact address.
+    "wixpress.com", "squarespace.com", "godaddy.com", "weebly.com",
+    "wordpress.com", "shopifyemail.com", "cloudflare.com",
+}
+# Generic local-parts (the bit before @) that are never a real
+# business's contact address, regardless of domain — system/legal
+# mailboxes that happen to sit on the business's own domain too.
+PLACEHOLDER_LOCAL_PARTS = {
+    "noreply", "no-reply", "donotreply", "do-not-reply", "webmaster",
+    "postmaster", "abuse", "mailer-daemon", "unsubscribe",
 }
 # Well-known placeholder EMAILS (not just domains) used by common form
 # validation libraries and code examples — these pass domain checks
@@ -73,9 +85,25 @@ def _is_plausible_email(email: str) -> bool:
     """
     if email.lower() in PLACEHOLDER_EMAIL_EXACT:
         return False
+
+    local_part = email.split("@")[0].lower()
+    if local_part in PLACEHOLDER_LOCAL_PARTS:
+        return False
+
     domain_part = email.split("@")[-1].lower()
 
-    if domain_part in PLACEHOLDER_EMAIL_DOMAINS:
+    # Subdomain-aware check: "sentry-next.wixpress.com" must be caught
+    # by the "wixpress.com" entry too, not just an exact-string match —
+    # website builders serve their placeholder/error-tracking addresses
+    # from ever-changing subdomains of their own domain.
+    if any(domain_part == d or domain_part.endswith("." + d) for d in PLACEHOLDER_EMAIL_DOMAINS):
+        return False
+
+    # Sentry (and similar error-tracking tools) generate a fresh random
+    # 32-character hex string as the local-part every time — a strong,
+    # domain-independent signal that this was never a human-typed
+    # contact address, regardless of which domain it ends up on.
+    if re.fullmatch(r"[0-9a-f]{32}", local_part):
         return False
 
     extension = domain_part.rsplit(".", 1)[-1] if "." in domain_part else ""

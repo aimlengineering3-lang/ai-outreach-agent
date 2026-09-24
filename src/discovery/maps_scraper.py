@@ -202,7 +202,6 @@ def scrape_maps_listings(
                 skipped_timeout += 1
                 continue
 
-        print(f"[scrape-diag] Skipped as already-known: {skipped_known} | Skipped on page-visit timeout: {skipped_timeout} | Successfully scraped: {len(results)}")
         browser.close()
 
     return ScrapeResult(listings=results, reached_max_results=reached_max_results)

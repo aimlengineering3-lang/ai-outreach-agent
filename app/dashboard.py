@@ -10,10 +10,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import csv
+import io
 from datetime import datetime, date
 
 import streamlit as st
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from src.db.session import SessionLocal, init_db
 from src.db.models import (
@@ -113,7 +116,13 @@ section[data-testid="stSidebar"] .stCaption, section[data-testid="stSidebar"] p 
 h1, h2, h3, h4 { color: var(--ink) !important; font-weight: 800 !important; letter-spacing: -0.01em; }
 p, span, label, div { color: var(--body-text); }
 .stMarkdown p { color: var(--body-text); }
-.stCaption, [data-testid="stCaptionContainer"] p { color: var(--muted-text) !important; font-size: 13px !important; }
+.stCaption, .stCaption *,
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] *,
+small {
+    color: var(--muted-text) !important;
+    opacity: 1 !important;
+    font-size: 13px !important;
+}
 
 /* ---- Hero header ---- */
 .hero {
@@ -210,6 +219,40 @@ div[data-baseweb="select"] > div {
     color: var(--ink) !important;
 }
 
+/* ---- Dropdown option list (the popup that opens on click) ----
+   This list renders in its own separate overlay, not inside the
+   select box itself — so it needs its own color rule, otherwise it
+   falls back to a dim default that's hard to read on a dark popup. */
+/* This app's Streamlit version renders dropdowns via React Aria
+   (visible as class="react-aria-ComboBox" in devtools), not the old
+   BaseWeb popover markup — so we target the accessibility roles
+   React Aria always sets, which stay stable across its versions even
+   as exact class names change. */
+[role="listbox"] {
+    background-color: #12161F !important;
+}
+[role="listbox"] [role="option"],
+[role="listbox"] [role="option"] * {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+}
+[role="option"][data-hovered="true"],
+[role="option"][data-focused="true"],
+[role="option"][data-selected="true"],
+[role="option"]:hover {
+    background-color: rgba(232, 93, 47, 0.20) !important;
+    color: #FFFFFF !important;
+}
+
+/* ---- Text areas (e.g. Email Body template editor) ---- */
+.stTextArea textarea {
+    color: #FFFFFF !important;
+}
+.stTextArea textarea::placeholder {
+    color: #8A93A8 !important;
+    opacity: 1 !important;
+}
+
 /* ---- Code / log output box ---- */
 .stCodeBlock, pre {
     background-color: #12161F !important;
@@ -241,7 +284,37 @@ details {
     border-radius: 12px !important;
     background: var(--bg-card) !important;
 }
-summary { font-weight: 700 !important; color: var(--ink) !important; }
+/* The expander's header bar renders with a dark background in this
+   Streamlit version, so its text needs to be white, not the dark
+   --ink color meant for light backgrounds. The * covers the emoji
+   and label text Streamlit wraps in nested spans. */
+summary,
+details summary,
+[data-testid="stExpander"] summary {
+    background-color: var(--bg-card) !important;
+}
+summary,
+summary *,
+details summary,
+details summary *,
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary * {
+    font-weight: 700 !important;
+    color: var(--ink) !important;
+}
+
+/* ---- Inline code badges (e.g. {first_name} variable pills) ---- */
+code, code * {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+}
+code {
+    padding: 3px 8px !important;
+    margin: 2px 3px 2px 0 !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+    line-height: 1.6 !important;
+}
 
 /* ---- Divider spacing tighten ---- */
 hr { margin: 8px 0 !important; border-color: var(--border) !important; }
@@ -415,7 +488,7 @@ elif page == "Operations":
                 st.rerun()
         else:
             col1.markdown("⚠️ Currently in **PRODUCTION** mode. Emails go to **real prospects**.")
-            if col2.button("Switch to TEST"):
+            if col2.button("Switch to TEST", type="primary"):
                 set_app_mode("TEST")
                 st.success("Switched to TEST. Emails will go to your own inbox only.")
                 st.rerun()
@@ -594,7 +667,7 @@ elif page == "Operations":
     section_header("✉️", "Check for Replies")
     with st.container(border=True):
         st.markdown('<p style="color:#2A3142;font-weight:500;font-size:14px;">Checks your inbox for new replies, matches them to leads, and stops follow-ups automatically.</p>', unsafe_allow_html=True)
-        if st.button("✉ Check Replies Now"):
+        if st.button("✉ Check Replies Now", type="primary"):
             with st.spinner("Checking inbox..."):
                 log = check_all_active_campaigns_captured()
             st.markdown("**Result:**")
@@ -613,7 +686,7 @@ elif page == "Operations":
             "End hour (24h)", min_value=1, max_value=24,
             value=settings["sending_window"]["end_hour"],
         )
-        if st.button("Save Sending Window"):
+        if st.button("Save Sending Window", type="primary"):
             settings["sending_window"] = {"start_hour": start_hour, "end_hour": end_hour}
             save_settings(settings)
             st.success("Sending window updated.")
@@ -655,7 +728,7 @@ elif page == "Operations":
         new_state = col2.text_input("State code", key="new_state_input", placeholder="e.g. AZ")
         col3.write("")
         col3.write("")
-        if col3.button("+ Add City"):
+        if col3.button("+ Add City", type="primary"):
             if new_city.strip() and new_state.strip():
                 cities.append({"city": new_city.strip(), "state": new_state.strip().upper()})
                 settings["target_cities"] = cities
@@ -858,12 +931,15 @@ elif page == "Leads":
         "Search Leads", placeholder="Search by business name, email, or website…",
     )
 
-    filter_col1, filter_col2 = st.columns(2)
+    filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
     all_niches_in_db = [n[0] for n in session.query(Lead.niche).distinct().all()]
     all_cities_in_db = sorted(set(c[0] for c in session.query(Lead.city).filter(Lead.city.isnot(None)).distinct().all()))
+    all_states_in_db = sorted(set(s[0] for s in session.query(Lead.state).filter(Lead.state.isnot(None)).distinct().all()))
 
     niche_filter = filter_col1.selectbox("Filter by niche", ["All niches"] + all_niches_in_db, key="leads_niche_filter")
     city_filter = filter_col2.selectbox("Filter by city", ["All cities"] + all_cities_in_db, key="leads_city_filter")
+    state_filter = filter_col3.selectbox("Filter by state", ["All states"] + all_states_in_db, key="leads_state_filter")
+    pixel_filter = filter_col4.selectbox("Filter by pixel", ["All", "Found", "Not Found", "Unknown"], key="leads_pixel_filter")
 
     st.write("")
     tab_has_email, tab_manual = st.tabs(["Has Email (auto-outreach)", "Manual Review (no email found)"])
@@ -876,6 +952,46 @@ elif page == "Leads":
         st.markdown(
             f'<p style="color:#2A3142;font-weight:500;font-size:14px;">{len(results)} lead(s)</p>',
             unsafe_allow_html=True,
+        )
+
+        def _pixel_display(lead) -> str:
+            if not lead.research or lead.research.meta_pixel in (None, "UNKNOWN"):
+                return "Unknown"
+            if lead.research.meta_pixel == "PRESENT":
+                return "Found"
+            return "Not Found"
+
+        def _bool_field_display(value) -> str:
+            return "PRESENT" if value else "MISSING" if value is not None else "UNKNOWN"
+
+        # Full-detail export — deliberately more columns than the
+        # on-screen table below, since this is meant to be taken
+        # offline (e.g. for cold-calling from a phone/printout without
+        # the dashboard open at all).
+        csv_buffer = io.StringIO()
+        writer = csv.writer(csv_buffer)
+        writer.writerow([
+            "Business", "Niche", "City", "State", "Status", "Email", "Email Status",
+            "Phone", "Contact Name", "Website", "Meta Pixel", "Google Analytics", "GTM",
+            "Created At",
+        ])
+        for l in results:
+            r = l.research
+            writer.writerow([
+                l.business_name, l.niche, l.city or "", l.state or "", l.status,
+                l.email or "", l.email_status, l.phone or "", l.contact_name or "",
+                l.website or "", _pixel_display(l),
+                _bool_field_display(r.google_analytics) if r else "UNKNOWN",
+                _bool_field_display(r.gtm) if r else "UNKNOWN",
+                l.created_at.strftime("%Y-%m-%d %H:%M") if l.created_at else "",
+            ])
+
+        st.download_button(
+            "⬇ Download this list as CSV",
+            data=csv_buffer.getvalue(),
+            file_name=f"leads_{key_prefix}.csv",
+            mime="text/csv",
+            key=f"download_{key_prefix}",
         )
 
         table_rows = [
@@ -950,6 +1066,7 @@ elif page == "Leads":
     if query:
         base_query = (
             session.query(Lead)
+            .options(joinedload(Lead.research))
             .filter(
                 (Lead.business_name.ilike(f"%{query}%"))
                 | (Lead.email.ilike(f"%{query}%"))
@@ -957,14 +1074,30 @@ elif page == "Leads":
             )
         )
     else:
-        base_query = session.query(Lead)
+        base_query = session.query(Lead).options(joinedload(Lead.research))
 
     if niche_filter != "All niches":
         base_query = base_query.filter(Lead.niche == niche_filter)
     if city_filter != "All cities":
         base_query = base_query.filter(Lead.city == city_filter)
+    if state_filter != "All states":
+        base_query = base_query.filter(Lead.state == state_filter)
 
     all_matching = base_query.order_by(Lead.created_at.desc()).all()
+
+    def _pixel_status(lead) -> str:
+        # meta_pixel is stored as "PRESENT"/"MISSING"/"UNKNOWN", but a
+        # lead can also have no LeadResearch row at all yet (not
+        # researched) — that's Unknown too, same as an explicit
+        # "UNKNOWN" value.
+        if not lead.research or lead.research.meta_pixel in (None, "UNKNOWN"):
+            return "Unknown"
+        if lead.research.meta_pixel == "PRESENT":
+            return "Found"
+        return "Not Found"
+
+    if pixel_filter != "All":
+        all_matching = [l for l in all_matching if _pixel_status(l) == pixel_filter]
 
     with tab_has_email:
         has_email_results = [l for l in all_matching if l.email]

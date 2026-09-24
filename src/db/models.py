@@ -60,6 +60,13 @@ class Lead(Base):
     # pipeline run, forever, for a site that keeps failing.
     research_fetch_failures: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
+    # Set only on the FIRST email sent to this lead — follow-ups reuse
+    # these so they land as a reply in the same thread instead of
+    # arriving as a brand-new, unrelated email.
+    email_subject: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    email_message_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # RFC-822 Message-ID header
+    email_thread_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)   # Gmail's own thread id
+
     # One lead has AT MOST one research record. back_populates keeps both
     # sides of the relationship in sync automatically (lead.research and
     # research.lead both work, without you manually setting both).
