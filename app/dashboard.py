@@ -192,6 +192,30 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     background-color: var(--accent-dark) !important;
     color: #FFFFFF !important;
 }
+.stDownloadButton > button,
+div[data-testid="stDownloadButton"] > button {
+    border-radius: 9px; font-weight: 700; border: 1px solid var(--border-strong);
+    background-color: #FFFFFF !important;
+    color: var(--ink) !important;
+    padding: 8px 18px;
+}
+.stDownloadButton > button:hover,
+div[data-testid="stDownloadButton"] > button:hover {
+    border-color: var(--accent) !important;
+    color: var(--accent-dark) !important;
+    background-color: var(--accent-soft) !important;
+}
+.stDownloadButton > button[kind="primary"],
+div[data-testid="stDownloadButton"] > button[kind="primary"] {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #FFFFFF !important;
+}
+.stDownloadButton > button[kind="primary"]:hover,
+div[data-testid="stDownloadButton"] > button[kind="primary"]:hover {
+    background-color: var(--accent-dark) !important;
+    color: #FFFFFF !important;
+}
 
 /* ---- Text inputs / search / selects: strong visible labels + placeholders ---- */
 .stTextInput label, .stSelectbox label, .stNumberInput label, .stCheckbox label p {
@@ -303,8 +327,13 @@ details summary *,
     color: var(--ink) !important;
 }
 
-/* ---- Inline code badges (e.g. {first_name} variable pills) ---- */
-code, code * {
+/* ---- Inline code badges (e.g. {first_name} variable pills) ----
+   These sit inside a st.caption() block, whose own rule (.stCaption *)
+   has higher specificity (class selector) than a bare "code" type
+   selector — so it was winning even with !important on both sides.
+   Matching that specificity here makes sure white wins instead. */
+code, code *,
+.stCaption code, .stCaption code * {
     color: #FFFFFF !important;
     opacity: 1 !important;
 }
@@ -868,7 +897,7 @@ elif page == "Campaigns":
                 )
 
                 save_col, info_col = st.columns([1, 3])
-                if save_col.button("Save as new version", key=f"save_{campaign.id}_{variant}"):
+                if save_col.button("Save as new version", key=f"save_{campaign.id}_{variant}", type="primary"):
                     if not body.strip():
                         st.error("Template body can't be empty.")
                     else:
@@ -992,6 +1021,7 @@ elif page == "Leads":
             file_name=f"leads_{key_prefix}.csv",
             mime="text/csv",
             key=f"download_{key_prefix}",
+            type="primary",
         )
 
         table_rows = [
