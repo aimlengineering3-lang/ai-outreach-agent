@@ -21,6 +21,14 @@ BOUNCE_SUBJECT_PATTERNS = [
     r"undelivered mail returned to sender",
     r"mail delivery failed",
     r"delivery incomplete",
+    r"address not found",
+    r"message not delivered",
+    r"wasn't delivered",
+    r"couldn't be delivered",
+    r"has been blocked",
+    r"recipient inbox full",
+    r"inbox full",
+    r"delivery subsystem",
 ]
 
 # Extracts the original recipient's email from the bounce message body,
@@ -37,6 +45,13 @@ def _is_bounce_subject(subject: str) -> bool:
 def _extract_subject(headers: list[dict]) -> str:
     for header in headers:
         if header["name"] == "Subject":
+            return header["value"]
+    return ""
+
+
+def _extract_from_header(headers: list[dict]) -> str:
+    for header in headers:
+        if header["name"].lower() == "from":
             return header["value"]
     return ""
 
@@ -65,8 +80,16 @@ def check_for_bounces(session: Session, sender_account: SenderAccount, max_resul
 
         headers = message["payload"]["headers"]
         subject = _extract_subject(headers)
+        from_header = _extract_from_header(headers).lower()
 
-        if not _is_bounce_subject(subject):
+        # Checking the sender address (Gmail's own "Mail Delivery
+        # Subsystem", always mailer-daemon@/postmaster@) is far more
+        # reliable than matching subject wording, since every
+        # receiving server phrases its bounce subject differently —
+        # "Address not found", "Message not delivered", etc. never
+        # matched the old, narrower subject-only patterns at all.
+        is_bounce_sender = "mailer-daemon" in from_header or "postmaster" in from_header
+        if not (is_bounce_sender or _is_bounce_subject(subject)):
             continue
 
         # Pull the raw snippet Gmail provides — usually contains the

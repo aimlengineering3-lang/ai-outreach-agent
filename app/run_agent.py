@@ -378,20 +378,33 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
         else:
             # Follow-up: MUST come from the same account that sent the
             # previous email to this lead, so the conversation stays
-            # consistent from the prospect's point of view.
+            # consistent from the prospect's point of view. This is
+            # also a fresh, last-second re-check of the lead's real
+            # state (not the possibly-stale snapshot due_actions was
+            # built from) - if some OTHER overlapping run (a second
+            # manual click, or the background worker) already sent
+            # this exact action in the meantime, last_event.event_type
+            # will already reflect that, and we skip instead of
+            # sending a duplicate.
             last_event = (
                 session.query(EmailEvent)
-                .filter(EmailEvent.lead_id == lead.id)
+                .filter(EmailEvent.lead_id == lead.id, EmailEvent.campaign_id == campaign.id)
                 .order_by(EmailEvent.sent_at.desc())
                 .first()
             )
             if not last_event:
                 continue
+            expected_prior_type = {"FOLLOWUP1": "SENT", "FOLLOWUP2": "FOLLOWUP1"}.get(action.action_type)
+            if last_event.event_type != expected_prior_type:
+                # Someone already advanced this lead past this stage
+                # since the due list was built - stale, not a bug to
+                # act on now.
+                continue
             sender_account = next(
                 (acc for acc in active_accounts if acc.id == last_event.sender_account_id), None
             )
             # If that specific account is out of capacity for today,
-            # skip this lead for now — it will be retried on the next
+            # skip this lead for now - it will be retried on the next
             # pipeline run, not lost or sent from a different account.
             if sender_account and remaining_capacity[sender_account.id] <= 0:
                 sender_account = None
@@ -446,14 +459,18 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
             else f"Re: {lead.email_subject or f'Quick note about {lead.business_name}'}"
         )
 
-        send_result = send_email(
-            to_address=lead.email,
-            subject=subject,
-            body=email_body_with_footer,
-            sender_address=sender_account.email,
-            in_reply_to_message_id=None if is_first_email else lead.email_message_id,
-            thread_id=None if is_first_email else lead.email_thread_id,
-        )
+        try:
+            send_result = send_email(
+                to_address=lead.email,
+                subject=subject,
+                body=email_body_with_footer,
+                sender_address=sender_account.email,
+                in_reply_to_message_id=None if is_first_email else lead.email_message_id,
+                thread_id=None if is_first_email else lead.email_thread_id,
+            )
+        except Exception as e:
+            print(f"[send-error] Failed to send to {lead.business_name} ({lead.email}): {e}")
+            continue
 
         if is_first_email:
             # Save these so every future follow-up to this lead can
@@ -489,8 +506,8 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
         sender_account.sent_today += 1
         remaining_capacity[sender_account.id] -= 1
         summary["sent"] += 1
+        session.commit()
 
-    session.commit()
     return summary
 
 

@@ -626,14 +626,22 @@ elif page == "Operations":
 
         if run_clicked:
             city_name, state_name = city_choice.split(", ")
-            with st.spinner("Running discovery → research → queue → send..."):
-                log = run_pipeline_captured(niche_choice, city_name, state_name, selected_campaign_id)
-            st.markdown("**Result:**")
-            st.code(log, language=None)
+            try:
+                with st.spinner("Running discovery → research → queue → send..."):
+                    log = run_pipeline_captured(niche_choice, city_name, state_name, selected_campaign_id)
+                st.markdown("**Result:**")
+                st.code(log, language=None)
 
-            from datetime import datetime as _dt
-            with open("pipeline_log.txt", "a", encoding="utf-8") as f:
-                f.write(f"\n--- {_dt.now()} ---\n{log}\n")
+                from datetime import datetime as _dt
+                with open("pipeline_log.txt", "a", encoding="utf-8") as f:
+                    f.write(f"\n--- {_dt.now()} ---\n{log}\n")
+            except Exception as e:
+                st.error(
+                    "Something interrupted the pipeline (likely a network or "
+                    "database connection issue). Any emails already sent are "
+                    "safely recorded — it's safe to just click 'Run Pipeline "
+                    "Now' again.\n\nTechnical detail: " + str(e)
+                )
     st.write("")
     section_header("", "Send All Pending Now")
     with st.container(border=True):
@@ -651,46 +659,55 @@ elif page == "Operations":
         send_filter_choice = st.selectbox("Send for", send_filter_options, key="send_all_filter")
 
         if st.button("Send All Pending Emails", type="primary"):
-            with st.spinner("Sending all due emails..."):
-                from src.db.session import SessionLocal as _SL
-                from app.run_agent import run_send_cycle as _rsc
+            try:
+                with st.spinner("Sending all due emails..."):
+                    from src.db.session import SessionLocal as _SL
+                    from app.run_agent import run_send_cycle as _rsc
 
-                send_session = _SL()
+                    send_session = _SL()
 
-                if send_filter_choice == "All active campaigns":
-                    campaigns_to_send = send_session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
-                else:
-                    target_id = int(send_filter_choice.split("#")[1].rstrip(")"))
-                    campaigns_to_send = send_session.query(Campaign).filter(Campaign.id == target_id).all()
+                    if send_filter_choice == "All active campaigns":
+                        campaigns_to_send = send_session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+                    else:
+                        target_id = int(send_filter_choice.split("#")[1].rstrip(")"))
+                        campaigns_to_send = send_session.query(Campaign).filter(Campaign.id == target_id).all()
 
-                combined_summary = {
-                    "sent": 0, "skipped_no_capacity": 0, "skipped_outside_window": 0,
-                    "skipped_no_template": 0, "skipped_suppressed": 0,
-                }
-                for c in campaigns_to_send:
-                    result = _rsc(send_session, c)
-                    for key in combined_summary:
-                        val = result.get(key, 0)
-                        if val and val > 0:
-                            combined_summary[key] += val
-                send_session.close()
+                    combined_summary = {
+                        "sent": 0, "skipped_no_capacity": 0, "skipped_outside_window": 0,
+                        "skipped_no_template": 0, "skipped_suppressed": 0,
+                    }
+                    for c in campaigns_to_send:
+                        result = _rsc(send_session, c)
+                        for key in combined_summary:
+                            val = result.get(key, 0)
+                            if val and val > 0:
+                                combined_summary[key] += val
+                    send_session.close()
 
-            st.success(f"Sent {combined_summary['sent']} email(s).")
+                st.success(f"Sent {combined_summary['sent']} email(s).")
 
-            details = []
-            if combined_summary["skipped_no_capacity"] > 0:
-                details.append(f"{combined_summary['skipped_no_capacity']} email(s) skipped — the account that should send them is out of capacity today.")
-            if combined_summary["skipped_outside_window"] > 0:
-                details.append(f"{combined_summary['skipped_outside_window']} email(s) held back — it's outside business hours for those prospects right now.")
-            if combined_summary["skipped_no_template"] > 0:
-                details.append(f"{combined_summary['skipped_no_template']} email(s) skipped — no matching template found. Add one from the Campaigns tab.")
-            if combined_summary["skipped_suppressed"] > 0:
-                details.append(f"{combined_summary['skipped_suppressed']} email(s) skipped — those contacts are on the do-not-contact list.")
+                details = []
+                if combined_summary["skipped_no_capacity"] > 0:
+                    details.append(f"{combined_summary['skipped_no_capacity']} email(s) skipped — the account that should send them is out of capacity today.")
+                if combined_summary["skipped_outside_window"] > 0:
+                    details.append(f"{combined_summary['skipped_outside_window']} email(s) held back — it's outside business hours for those prospects right now.")
+                if combined_summary["skipped_no_template"] > 0:
+                    details.append(f"{combined_summary['skipped_no_template']} email(s) skipped — no matching template found. Add one from the Campaigns tab.")
+                if combined_summary["skipped_suppressed"] > 0:
+                    details.append(f"{combined_summary['skipped_suppressed']} email(s) skipped — those contacts are on the do-not-contact list.")
 
-            if details:
-                st.markdown("**Details:**")
-                for d in details:
-                    st.markdown(f"- {d}")
+                if details:
+                    st.markdown("**Details:**")
+                    for d in details:
+                        st.markdown(f"- {d}")
+            except Exception as e:
+                st.error(
+                    "Something interrupted sending (likely a network or "
+                    "database connection issue). Emails already sent before "
+                    "the interruption are safely recorded — it's safe to "
+                    "just click 'Send All Pending Emails' again.\n\n"
+                    "Technical detail: " + str(e)
+                )
 
     st.write("")
     section_header("✉️", "Check for Replies")
@@ -699,6 +716,24 @@ elif page == "Operations":
         if st.button("✉ Check Replies Now", type="primary"):
             with st.spinner("Checking inbox..."):
                 log = check_all_active_campaigns_captured()
+
+                # Bounce-checking previously only ran inside
+                # background_worker.py — if that's never been run as a
+                # separate standing process, bounces were never
+                # detected at all. Running it here too means this
+                # button alone is enough, no separate process needed.
+                from src.db.session import SessionLocal as _SL2
+                from src.replies.bounce_detector import check_all_accounts_for_bounces
+
+                bounce_session = _SL2()
+                bounce_result = check_all_accounts_for_bounces(bounce_session)
+                bounce_session.close()
+                log += (
+                    f"\n\n--- Bounce check ---\n"
+                    f"Checked {bounce_result['checked']} message(s), "
+                    f"found {bounce_result['bounces_found']} new bounce(s)."
+                )
+
             st.markdown("**Result:**")
             st.code(log, language=None)
 

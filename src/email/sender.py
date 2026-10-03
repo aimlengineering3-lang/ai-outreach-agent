@@ -125,8 +125,12 @@ def send_email(
 
     # We generate this ourselves (rather than reading it back from
     # Gmail afterward) so we know it immediately and can save it on
-    # the lead for any later follow-up to reference.
-    new_message_id = make_msgid()
+    # the lead for any later follow-up to reference. Explicitly pass
+    # the sending domain (gmail.com) - without it, make_msgid() falls
+    # back to this machine's local hostname (e.g. ...@DESKTOP-XXXXX),
+    # which doesn't match the From address's domain and is a strong
+    # spam/spoofing signal to mail filters, including Gmail's own.
+    new_message_id = make_msgid(domain=sender_address.split("@")[-1])
     message["Message-ID"] = new_message_id
 
     if in_reply_to_message_id:

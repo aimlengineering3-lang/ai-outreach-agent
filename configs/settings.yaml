@@ -120,6 +120,32 @@ target_cities:
   state: TX
 - city: Crystal City
   state: TX
+- city: Dallas
+  state: TX
+- city: Del Rio
+  state: TX
+- city: Denison
+  state: TX
+- city: Denton
+  state: TX
+- city: Eagle Pass
+  state: TX
+- city: Edinburg
+  state: TX
+- city: El Paso
+  state: TX
+- city: Fort Worth
+  state: TX
+- city: Freeport
+  state: TX
+- city: Galveston
+  state: TX
+- city: Garland
+  state: TX
+- city: Goliad
+  state: TX
+- city: Greenville
+  state: TX
 your_quiet_hours:
   end_hour: 8
   start_hour: 23

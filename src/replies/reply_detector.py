@@ -18,12 +18,22 @@ from src.email.sender import send_email
 from src.core.config import load_settings
 from datetime import datetime as dt
 from src.email.sender import _get_credentials
-from src.db.models import Lead, EmailEvent, Campaign
+from src.db.models import Lead, EmailEvent, Campaign, SenderAccount
 from src.core.state_machine import LeadStatus, transition, InvalidTransitionError
+import re
 from src.replies.reply_classifier import classify_reply
 from src.replies.night_responder import generate_night_response
 from src.email.sender import send_email
 from src.email.timezone_resolver import is_within_send_window
+
+# A simple, dependency-free safety net: even if the LLM classifier
+# fails or mis-reads a short reply, an explicit unsubscribe-style
+# phrase must never be missed — this is compliance-relevant, not just
+# a nice-to-have, so it doesn't rely on the LLM call succeeding.
+UNSUBSCRIBE_FALLBACK_PATTERN = re.compile(
+    r"\b(unsubscribe|remove me|take me off|stop emailing|stop contacting|do not contact)\b",
+    re.IGNORECASE,
+)
 
 def _extract_sender_email(headers: list[dict]) -> str | None:
     for header in headers:
@@ -95,20 +105,38 @@ def check_for_replies(session: Session, campaign: Campaign, sender_account_email
         body_text = _extract_body_text(message["payload"])
         category = classify_reply(body_text)
 
+        if category != "unsubscribe" and UNSUBSCRIBE_FALLBACK_PATTERN.search(body_text):
+            category = "unsubscribe"
+
         if category == "unsubscribe":
             from src.core.suppression import add_suppression
             add_suppression(session, lead.email, reason="unsubscribe", permanent=True)
 
+        matched_account = (
+            session.query(SenderAccount).filter(SenderAccount.email == sender_account_email).first()
+            if sender_account_email else None
+        )
+
         event = EmailEvent(
             lead_id=lead.id,
             campaign_id=campaign.id,
-            sender_account_id=1,
+            sender_account_id=matched_account.id if matched_account else None,
             event_type="REPLY",
             scheduled_for=datetime.now(timezone.utc),
             sent_at=datetime.now(timezone.utc),
             notes=f"category={category}",
         )
         session.add(event)
+
+        # This was the missing piece: logging the REPLY event alone
+        # never stopped future follow-ups — only this status change
+        # does, since the scheduler only queries leads still in
+        # QUEUED/CONTACTED/NO_REPLY. Without it, a lead kept getting
+        # automated follow-ups even after replying.
+        try:
+            lead.status = transition(LeadStatus(lead.status), LeadStatus.REPLIED).value
+        except InvalidTransitionError:
+            pass
 
                 # If it's currently your quiet hours (e.g. late at night, when
         # you're asleep), send a brief acknowledgement so the prospect
