@@ -1,63 +1,51 @@
 """
-Resolves ANY US city/state to an IANA timezone using free geocoding
-(no API key, no per-city hardcoding needed) and checks whether the
-current time falls within the configured sending window there.
+Resolves a US city/state to an IANA timezone using a built-in
+state -> timezone lookup table (no native/compiled packages, no
+external geocoding service), and checks whether the current time
+falls within the configured sending window there.
 """
 
-import httpx
 from datetime import datetime
 from typing import Optional
 
 import pytz
-from timezonefinder import TimezoneFinder
 
-_tf = TimezoneFinder()
-
-# Simple in-memory cache so we don't re-geocode the same city every call.
-_geocode_cache: dict[str, tuple[float, float]] = {}
-
-
-def _geocode_city(city: str, state: str) -> Optional[tuple[float, float]]:
-    """
-    Uses the free OpenStreetMap Nominatim geocoding service to turn any
-    "City, State" into latitude/longitude — works for every US city,
-    not just a hardcoded list.
-    """
-    cache_key = f"{city.lower()},{state.lower()}"
-    if cache_key in _geocode_cache:
-        return _geocode_cache[cache_key]
-
-    try:
-        response = httpx.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={"q": f"{city}, {state}, USA", "format": "json", "limit": 1},
-            headers={"User-Agent": "AI-Outreach-Agent/1.0"},
-            timeout=10.0,
-        )
-        results = response.json()
-        if not results:
-            return None
-        lat = float(results[0]["lat"])
-        lng = float(results[0]["lon"])
-        _geocode_cache[cache_key] = (lat, lng)
-        return (lat, lng)
-    except Exception:
-        return None
+# Most US states sit entirely (or almost entirely) in one timezone.
+# A handful are split across two zones (TX, FL, MI, IN, KY, ND, SD,
+# NE, ID, OR, ...) -- for those we use the zone the majority of the
+# state's population lives in. Accepted trade-off: a few border-town
+# leads may be off by one hour, in exchange for not depending on any
+# compiled/native package (timezonefinder -> h3 was getting blocked
+# by Windows Application Control Policy) or an external geocoding
+# API call per lead.
+_STATE_TIMEZONES: dict[str, str] = {
+    "AL": "America/Chicago", "AK": "America/Anchorage", "AZ": "America/Phoenix",
+    "AR": "America/Chicago", "CA": "America/Los_Angeles", "CO": "America/Denver",
+    "CT": "America/New_York", "DE": "America/New_York", "FL": "America/New_York",
+    "GA": "America/New_York", "HI": "Pacific/Honolulu", "ID": "America/Denver",
+    "IL": "America/Chicago", "IN": "America/New_York", "IA": "America/Chicago",
+    "KS": "America/Chicago", "KY": "America/New_York", "LA": "America/Chicago",
+    "ME": "America/New_York", "MD": "America/New_York", "MA": "America/New_York",
+    "MI": "America/New_York", "MN": "America/Chicago", "MS": "America/Chicago",
+    "MO": "America/Chicago", "MT": "America/Denver", "NE": "America/Chicago",
+    "NV": "America/Los_Angeles", "NH": "America/New_York", "NJ": "America/New_York",
+    "NM": "America/Denver", "NY": "America/New_York", "NC": "America/New_York",
+    "ND": "America/Chicago", "OH": "America/New_York", "OK": "America/Chicago",
+    "OR": "America/Los_Angeles", "PA": "America/New_York", "RI": "America/New_York",
+    "SC": "America/New_York", "SD": "America/Chicago", "TN": "America/Chicago",
+    "TX": "America/Chicago", "UT": "America/Denver", "VT": "America/New_York",
+    "VA": "America/New_York", "WA": "America/Los_Angeles", "WV": "America/New_York",
+    "WI": "America/Chicago", "WY": "America/Denver", "DC": "America/New_York",
+}
 
 
 def resolve_timezone(city: str, state: str) -> Optional[str]:
     """
-    Returns an IANA timezone string (e.g. 'America/Anchorage') for ANY
-    US city, by geocoding it first and then looking up the timezone
-    for those coordinates. Works nationwide — Alaska, Hawaii, small
-    towns, everywhere — with no manual city list to maintain.
+    Returns an IANA timezone string (e.g. 'America/Chicago') for a US
+    state abbreviation. `city` is accepted for call-site compatibility
+    but isn't used for the lookup (see trade-off note above).
     """
-    coords = _geocode_city(city, state)
-    if not coords:
-        return None
-
-    lat, lng = coords
-    return _tf.timezone_at(lat=lat, lng=lng)
+    return _STATE_TIMEZONES.get((state or "").strip().upper())
 
 
 def is_within_send_window(timezone_str: str) -> bool:

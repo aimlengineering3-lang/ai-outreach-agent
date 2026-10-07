@@ -461,7 +461,7 @@ if page == "Overview":
     from src.email.health_monitor import compute_capacity as _compute_capacity_for_reset
     active_accounts_for_reset = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
     for acc in active_accounts_for_reset:
-        _compute_capacity_for_reset(acc)
+        _compute_capacity_for_reset(session, acc)
     session.commit()
 
     total_daily_capacity = sum(acc.daily_limit for acc in active_accounts_for_reset)
@@ -590,7 +590,7 @@ elif page == "Operations":
             # sent anything yet today would still show yesterday's
             # leftover count.
             for acc in all_accounts:
-                compute_capacity(acc)
+                compute_capacity(session, acc)
             session.commit()
 
             cols = st.columns(len(all_accounts))
@@ -602,7 +602,7 @@ elif page == "Operations":
     st.write("")
     section_header("▶️", "Run Pipeline")
     with st.container(border=True):
-        st.markdown('<p style="color:#2A3142;font-weight:500;font-size:14px;">Discovers leads, researches them, queues eligible ones, and sends due emails — all in one click.</p>', unsafe_allow_html=True)
+        st.markdown('<p style="color:#2A3142;font-weight:500;font-size:14px;">Discovers leads, researches them, and queues eligible ones for the matching campaign — does not send anything. Use "Send All Pending Now" below to actually send.</p>', unsafe_allow_html=True)
 
         cities = settings.get("target_cities", [{"city": "Austin", "state": "TX"}])
         city_options = [f"{c['city']}, {c['state']}" for c in cities]
@@ -614,21 +614,16 @@ elif page == "Operations":
             help="Click and type to search — matches anywhere in the city name.",
         )
 
-        active_campaigns = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
-        campaign_options = ["Auto-select by niche"] + [f"{c.name} (#{c.id})" for c in active_campaigns]
-        campaign_choice = st.selectbox("Campaign (optional)", campaign_options, key="run_campaign")
-
-        selected_campaign_id = None
-        if campaign_choice != "Auto-select by niche":
-            selected_campaign_id = int(campaign_choice.split("#")[1].rstrip(")"))
-
         run_clicked = st.button("▶ Run Pipeline Now", type="primary")
 
         if run_clicked:
             city_name, state_name = city_choice.split(", ")
             try:
-                with st.spinner("Running discovery → research → queue → send..."):
-                    log = run_pipeline_captured(niche_choice, city_name, state_name, selected_campaign_id)
+                with st.spinner("Running discovery → research → queue..."):
+                    # Campaign is always auto-matched by niche here — this
+                    # step only discovers, researches and queues leads.
+                    # Actual sending happens from "Send All Pending Now" below.
+                    log = run_pipeline_captured(niche_choice, city_name, state_name, campaign_id=None)
                 st.markdown("**Result:**")
                 st.code(log, language=None)
 
@@ -638,74 +633,148 @@ elif page == "Operations":
             except Exception as e:
                 st.error(
                     "Something interrupted the pipeline (likely a network or "
-                    "database connection issue). Any emails already sent are "
-                    "safely recorded — it's safe to just click 'Run Pipeline "
-                    "Now' again.\n\nTechnical detail: " + str(e)
+                    "database connection issue). Anything already discovered, "
+                    "researched or queued is safely recorded — it's safe to "
+                    "just click 'Run Pipeline Now' again.\n\nTechnical detail: " + str(e)
                 )
     st.write("")
     section_header("", "Send All Pending Now")
     with st.container(border=True):
         st.markdown(
             '<p style="color:#2A3142;font-weight:500;font-size:14px;">'
-            "Sends every due email right now — new leads that already have an "
-            "email, plus follow-ups that are due. No new discovery/research "
-            "happens here, just sending."
+            "Pick niches and campaigns, set how many emails to send per niche, then hit the button. "
+            "The limit shown below is your sender accounts\u2019 real remaining capacity today \u2014 "
+            "not a fixed number."
             "</p>",
             unsafe_allow_html=True,
         )
 
+        from app.run_agent import run_send_cycle as _rsc, get_niche_stats
+        from src.email.health_monitor import compute_capacity as _compute_capacity_for_send
+
+        active_accounts_for_send = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
+        remaining_today = sum(
+            _compute_capacity_for_send(session, acc).available_capacity
+            for acc in active_accounts_for_send
+        )
+        total_capacity_today = sum(acc.daily_limit for acc in active_accounts_for_send)
+        sent_today_total = sum(acc.sent_today for acc in active_accounts_for_send)
+        session.commit()  # compute_capacity() may have just applied a daily reset
+        st.caption(
+            f"Sent today: {sent_today_total} | Remaining capacity today: "
+            f"{remaining_today} / {total_capacity_today}"
+        )
+
+        stats = get_niche_stats(session)
+        if stats:
+            st.markdown("**Status per niche**")
+            st.table([
+                {
+                    "Niche": niche,
+                    "New leads pending": s["new_pending"],
+                    "Follow-ups pending": s["followup_pending"],
+                    "Sent today": s["sent_today"],
+                }
+                for niche, s in sorted(stats.items())
+            ])
+
         all_active_for_send = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
-        send_filter_options = ["All active campaigns"] + [f"{c.name} (#{c.id})" for c in all_active_for_send]
-        send_filter_choice = st.selectbox("Send for", send_filter_options, key="send_all_filter")
+        niches_available = sorted({c.niche for c in all_active_for_send})
 
-        if st.button("Send All Pending Emails", type="primary"):
+        col_niche, col_campaign = st.columns(2)
+        selected_niches = col_niche.multiselect(
+            "Niches", niches_available, default=niches_available, key="send_niches"
+        )
+
+        campaigns_for_niches = [c for c in all_active_for_send if c.niche in selected_niches]
+        campaign_label_to_id = {f"{c.name} (#{c.id})": c.id for c in campaigns_for_niches}
+        selected_campaign_labels = col_campaign.multiselect(
+            "Campaigns (pick one or more)",
+            list(campaign_label_to_id.keys()),
+            default=[],
+            key="send_campaigns",
+        )
+        selected_campaign_ids = [campaign_label_to_id[l] for l in selected_campaign_labels]
+        campaigns_selected = [c for c in campaigns_for_niches if c.id in selected_campaign_ids]
+
+        niches_in_campaigns = sorted({c.niche for c in campaigns_selected})
+        per_niche_limits = {}
+        if niches_in_campaigns:
+            st.markdown("**How many emails per niche**")
+            limit_cols = st.columns(len(niches_in_campaigns))
+            for col, niche in zip(limit_cols, niches_in_campaigns):
+                per_niche_limits[niche] = col.number_input(
+                    niche,
+                    min_value=0, max_value=max(remaining_today, 0), value=0, step=10,
+                    key=f"send_limit_{niche}",
+                )
+
+        total_requested = sum(per_niche_limits.values())
+        st.caption(f"Total selected: {total_requested} | Remaining capacity today: {remaining_today}")
+        if total_requested > remaining_today:
+            st.error(
+                f"Total ({total_requested}) is more than today's remaining capacity "
+                f"({remaining_today}). Lower the numbers above."
+            )
+
+        send_disabled = total_requested <= 0 or total_requested > remaining_today
+        if st.button("Send All Pending Emails", type="primary", disabled=send_disabled):
             try:
-                with st.spinner("Sending all due emails..."):
+                with st.spinner("Sending emails..."):
                     from src.db.session import SessionLocal as _SL
-                    from app.run_agent import run_send_cycle as _rsc
-
                     send_session = _SL()
 
-                    if send_filter_choice == "All active campaigns":
-                        campaigns_to_send = send_session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
-                    else:
-                        target_id = int(send_filter_choice.split("#")[1].rstrip(")"))
-                        campaigns_to_send = send_session.query(Campaign).filter(Campaign.id == target_id).all()
+                    skipped_keys = ["skipped_no_capacity", "skipped_outside_window",
+                                    "skipped_no_template", "skipped_suppressed"]
+                    totals = {k: 0 for k in skipped_keys}
+                    totals["sent"] = 0
+                    per_niche_sent = {}
 
-                    combined_summary = {
-                        "sent": 0, "skipped_no_capacity": 0, "skipped_outside_window": 0,
-                        "skipped_no_template": 0, "skipped_suppressed": 0,
-                    }
-                    for c in campaigns_to_send:
-                        result = _rsc(send_session, c)
-                        for key in combined_summary:
-                            val = result.get(key, 0)
-                            if val and val > 0:
-                                combined_summary[key] += val
+                    for niche in niches_in_campaigns:
+                        budget = per_niche_limits.get(niche, 0)
+                        if budget <= 0:
+                            continue
+                        sent_here = 0
+                        for cid in [c.id for c in campaigns_selected if c.niche == niche]:
+                            left = budget - sent_here
+                            if left <= 0:
+                                break
+                            camp = send_session.query(Campaign).filter(Campaign.id == cid).first()
+                            if not camp:
+                                continue
+                            result = _rsc(send_session, camp, max_sends=left)
+                            sent_here += max(result.get("sent", 0), 0)
+                            for k in skipped_keys:
+                                v = result.get(k, 0)
+                                if v and v > 0:
+                                    totals[k] += v
+                        per_niche_sent[niche] = sent_here
+                        totals["sent"] += sent_here
+
                     send_session.close()
 
-                st.success(f"Sent {combined_summary['sent']} email(s).")
+                st.success(f"Sent {totals['sent']} email(s) in total.")
+                for niche, n in per_niche_sent.items():
+                    st.write(f"- {niche}: sent {n} (your limit was {per_niche_limits[niche]})")
 
                 details = []
-                if combined_summary["skipped_no_capacity"] > 0:
-                    details.append(f"{combined_summary['skipped_no_capacity']} email(s) skipped — the account that should send them is out of capacity today.")
-                if combined_summary["skipped_outside_window"] > 0:
-                    details.append(f"{combined_summary['skipped_outside_window']} email(s) held back — it's outside business hours for those prospects right now.")
-                if combined_summary["skipped_no_template"] > 0:
-                    details.append(f"{combined_summary['skipped_no_template']} email(s) skipped — no matching template found. Add one from the Campaigns tab.")
-                if combined_summary["skipped_suppressed"] > 0:
-                    details.append(f"{combined_summary['skipped_suppressed']} email(s) skipped — those contacts are on the do-not-contact list.")
-
+                if totals["skipped_no_capacity"] > 0:
+                    details.append(f"{totals['skipped_no_capacity']} email(s) skipped \u2014 sender account capacity used up for today.")
+                if totals["skipped_outside_window"] > 0:
+                    details.append(f"{totals['skipped_outside_window']} email(s) held back \u2014 outside the prospect's business hours right now.")
+                if totals["skipped_no_template"] > 0:
+                    details.append(f"{totals['skipped_no_template']} email(s) skipped \u2014 no template found. Add one in the Campaigns tab.")
+                if totals["skipped_suppressed"] > 0:
+                    details.append(f"{totals['skipped_suppressed']} email(s) skipped \u2014 on the do-not-contact list.")
                 if details:
                     st.markdown("**Details:**")
                     for d in details:
                         st.markdown(f"- {d}")
             except Exception as e:
                 st.error(
-                    "Something interrupted sending (likely a network or "
-                    "database connection issue). Emails already sent before "
-                    "the interruption are safely recorded — it's safe to "
-                    "just click 'Send All Pending Emails' again.\n\n"
+                    "Something went wrong while sending (likely network or database). "
+                    "Any emails already sent are safely recorded \u2014 it's safe to just "
+                    "click 'Send All Pending Emails' again.\n\n"
                     "Technical detail: " + str(e)
                 )
 
@@ -1202,7 +1271,7 @@ elif page == "Sender Accounts":
         st.markdown('<div class="empty-state">No sender accounts yet.</div>', unsafe_allow_html=True)
 
     for acc in accounts:
-        capacity = compute_capacity(acc)
+        capacity = compute_capacity(session, acc)
         session.commit()  # persist any daily reset that just happened
         with st.container(border=True):
             col1, col2, col3 = st.columns([3, 1.5, 2])

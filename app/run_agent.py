@@ -322,13 +322,16 @@ def _variant_for_action(action_type: str, meta_pixel_status: str) -> str:
     return "followup_1" if action_type == "FOLLOWUP1" else "followup_2"
 
 
-def run_send_cycle(session, campaign: Campaign) -> dict:
+def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) -> dict:
     """
     Finds due leads (scheduler), prioritizes follow-ups over brand-new
     sends, sends from the correct sender account (follow-ups always
     reuse the account that sent the original email — keeps threads
     consistent per prospect), and respects each account's remaining
     daily capacity.
+
+    max_sends: optional cap on how many emails THIS call may send
+    (used by the dashboard's per-niche send limits). None = no extra cap.
     """
     summary = {"sent": 0, "skipped_no_capacity": 0, "skipped_outside_window": 0,
                "skipped_no_template": 0, "skipped_suppressed": 0}
@@ -343,7 +346,7 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
     # commit — without this, we could overshoot within a single run.
     remaining_capacity = {}
     for acc in active_accounts:
-        cap = compute_capacity(acc)
+        cap = compute_capacity(session, acc)
         remaining_capacity[acc.id] = cap.available_capacity
     session.commit()  # persist any daily resets that just happened
 
@@ -359,8 +362,15 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
     due_actions.sort(key=lambda a: priority.get(a.action_type, 3))
 
     for action in due_actions:
+        if max_sends is not None and summary["sent"] >= max_sends:
+            break
         lead = session.query(Lead).filter(Lead.id == action.lead_id).first()
         if not lead or not lead.email:
+            continue
+        if lead.niche != campaign.niche:
+            # get_due_actions() only filters by status, not niche — without
+            # this check, a Plumbing campaign send would also pick up
+            # queued HVAC/Roofing/etc. leads.
             continue
         if is_suppressed(session, lead.email):
             summary["skipped_suppressed"] += 1
@@ -514,6 +524,80 @@ def run_send_cycle(session, campaign: Campaign) -> dict:
 # ---------------------------------------------------------------------
 # MAIN LOOP
 # ---------------------------------------------------------------------
+def get_niche_stats(session) -> dict:
+    """Har niche ke liye: naye leads pending, follow-up pending, aaj bheji gayi."""
+    from datetime import datetime as _dt
+    from sqlalchemy import func
+
+    stats = {}
+
+    def _bucket(niche):
+        return stats.setdefault(niche, {"new_pending": 0, "followup_pending": 0, "sent_today": 0})
+
+    niche_of_lead = dict(session.query(Lead.id, Lead.niche).all())
+
+    campaigns = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+    for c in campaigns:
+        _bucket(c.niche)
+        for action in get_due_actions(session, c):
+            if niche_of_lead.get(action.lead_id) != c.niche:
+                continue
+            if action.action_type == "SENT":
+                _bucket(c.niche)["new_pending"] += 1
+            else:
+                _bucket(c.niche)["followup_pending"] += 1
+
+    start_of_day = _dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = (
+        session.query(Lead.niche, func.count(EmailEvent.id))
+        .join(EmailEvent, EmailEvent.lead_id == Lead.id)
+        .filter(EmailEvent.sent_at >= start_of_day)
+        .group_by(Lead.niche)
+        .all()
+    )
+    for niche, count in rows:
+        _bucket(niche)["sent_today"] = count
+
+    return stats
+
+
+def get_niche_stats(session) -> dict:
+    """For each niche: new leads pending, follow-ups pending, sent today."""
+    from datetime import datetime as _dt
+    from sqlalchemy import func
+
+    stats = {}
+
+    def _bucket(niche):
+        return stats.setdefault(niche, {"new_pending": 0, "followup_pending": 0, "sent_today": 0})
+
+    niche_of_lead = dict(session.query(Lead.id, Lead.niche).all())
+
+    campaigns = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+    for c in campaigns:
+        _bucket(c.niche)
+        for action in get_due_actions(session, c):
+            if niche_of_lead.get(action.lead_id) != c.niche:
+                continue
+            if action.action_type == "SENT":
+                _bucket(c.niche)["new_pending"] += 1
+            else:
+                _bucket(c.niche)["followup_pending"] += 1
+
+    start_of_day = _dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = (
+        session.query(Lead.niche, func.count(EmailEvent.id))
+        .join(EmailEvent, EmailEvent.lead_id == Lead.id)
+        .filter(EmailEvent.sent_at >= start_of_day)
+        .group_by(Lead.niche)
+        .all()
+    )
+    for niche, count in rows:
+        _bucket(niche)["sent_today"] = count
+
+    return stats
+
+
 def _format_duration(seconds: float) -> str:
     total = int(seconds)
     minutes, secs = divmod(total, 60)
@@ -539,10 +623,9 @@ def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
     else:
         campaign = session.query(Campaign).filter(Campaign.niche == niche, Campaign.status == "ACTIVE").first()
 
-    summary = {"sent": 0, "skipped_outside_window": 0}
+    queued_count = 0
     if campaign:
-        queue_researched_leads(session, campaign)
-        summary = run_send_cycle(session, campaign)
+        queued_count = queue_researched_leads(session, campaign)
 
     total_in_city = session.query(Lead).filter(Lead.niche == niche, Lead.city == city).count()
     elapsed = _format_duration(time.time() - started_at)
@@ -555,13 +638,9 @@ def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
     print(f"  Emails found              : {emails_found}")
     print(f"  No email found            : {no_email_found}  (see Manual Review tab)")
     if campaign:
-        print(f"  Emails sent this run      : {summary['sent']}")
-        if summary.get("skipped_no_capacity") == -1:
-            print("  Note: no active sender account has capacity right now.")
-        if summary.get("skipped_outside_window"):
-            print(f"  Held back (outside hours) : {summary['skipped_outside_window']}")
+        print(f"  Queued for sending        : {queued_count}  (go to 'Send All Pending Now' to actually send)")
     else:
-        print(f"  Emails sent this run      : 0  (no active campaign for '{niche}' — create one in the Campaigns tab)")
+        print(f"  Queued for sending        : 0  (no active campaign for '{niche}' — create one in the Campaigns tab)")
     print(f"  Total {niche} leads in {city} so far: {total_in_city}")
 
     session.close()

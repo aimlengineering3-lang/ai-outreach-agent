@@ -146,6 +146,102 @@ target_cities:
   state: TX
 - city: Greenville
   state: TX
+- city: Harlingen
+  state: TX
+- city: Houston
+  state: TX
+- city: Huntsville
+  state: TX
+- city: Irving
+  state: TX
+- city: Johnson City
+  state: TX
+- city: Kilgore
+  state: TX
+- city: Killeen
+  state: TX
+- city: Kingsville
+  state: TX
+- city: Longview
+  state: TX
+- city: Laredo
+  state: TX
+- city: Lubbock
+  state: TX
+- city: Lufkin
+  state: TX
+- city: Marshall
+  state: TX
+- city: McAllen
+  state: TX
+- city: McKinney
+  state: TX
+- city: Mesquite
+  state: TX
+- city: Midland
+  state: TX
+- city: Mission
+  state: TX
+- city: Nacogdoches
+  state: TX
+- city: Orange
+  state: TX
+- city: New Braunfels
+  state: TX
+- city: Odessa
+  state: TX
+- city: Pampa
+  state: TX
+- city: Paris
+  state: TX
+- city: Pasadena
+  state: TX
+- city: Pecos
+  state: TX
+- city: Pharr
+  state: TX
+- city: Plainview
+  state: TX
+- city: Plano
+  state: TX
+- city: Port Arthur
+  state: TX
+- city: Port Lavaca
+  state: TX
+- city: Richardson
+  state: TX
+- city: San Angelo
+  state: TX
+- city: San Antonio
+  state: TX
+- city: San Felipe
+  state: TX
+- city: San Marcos
+  state: TX
+- city: Sherman
+  state: TX
+- city: Sweetwater
+  state: TX
+- city: Temple
+  state: TX
+- city: Texas City
+  state: TX
+- city: Tyler
+  state: TX
+- city: Uvalde
+  state: TX
+- city: Victoria
+  state: TX
+- city: Waco
+  state: TX
+- city: Weatherford
+  state: TX
+- city: Wichita Falls
+  state: TX
+- city: Ysleta
+  state: TX
+- city: Texarkana
+  state: TX
 your_quiet_hours:
   end_hour: 8
   start_hour: 23
