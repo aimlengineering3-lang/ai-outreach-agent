@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from src.db.models import Lead, Campaign, EmailEvent, SuppressionList
 
@@ -35,7 +35,11 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
 
     leads = (
         session.query(Lead)
-        .filter(Lead.status.in_(["QUEUED", "CONTACTED", "NO_REPLY"]))
+        .options(load_only(Lead.id, Lead.email, Lead.status, Lead.created_at))
+        .filter(
+            Lead.status.in_(["QUEUED", "CONTACTED", "NO_REPLY"]),
+            Lead.niche == campaign.niche,
+        )
         .order_by(Lead.created_at.asc())
         .all()
     )
@@ -67,6 +71,7 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
     # of one query per lead.
     all_events = (
         session.query(EmailEvent)
+        .options(load_only(EmailEvent.id, EmailEvent.lead_id, EmailEvent.event_type, EmailEvent.sent_at))
         .filter(EmailEvent.lead_id.in_(lead_ids), EmailEvent.campaign_id == campaign.id)
         .order_by(EmailEvent.sent_at.desc())
         .all()

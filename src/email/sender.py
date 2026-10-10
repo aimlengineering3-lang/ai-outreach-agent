@@ -122,6 +122,14 @@ def send_email(
     message["to"] = actual_recipient
     message["from"] = sender_address
     message["subject"] = subject
+    # Real List-Unsubscribe header (RFC 2369) — Gmail/Outlook/Yahoo show
+    # a built-in "Unsubscribe" link next to the sender's name when this
+    # is present, and its absence (combined with bulk-ish sending
+    # patterns) is itself a negative deliverability signal. mailto-based
+    # since we don't run a web server for the HTTPS one-click variant —
+    # replies to it are already handled by the existing unsubscribe
+    # detection in reply handling.
+    message["List-Unsubscribe"] = f"<mailto:{sender_address}?subject=unsubscribe>"
 
     # We generate this ourselves (rather than reading it back from
     # Gmail afterward) so we know it immediately and can save it on

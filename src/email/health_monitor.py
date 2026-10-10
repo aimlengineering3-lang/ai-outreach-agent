@@ -8,8 +8,8 @@ from datetime import datetime, timedelta, timezone
 from src.db.models import SenderAccount, EmailEvent
 
 
-BOUNCE_RATE_THROTTLE_THRESHOLD = 0.10   # 10% bounce rate -> throttle
-BOUNCE_RATE_PAUSE_THRESHOLD = 0.20      # 20% -> pause entirely
+BOUNCE_RATE_THROTTLE_THRESHOLD = 0.05   # 5% bounce rate -> throttle
+BOUNCE_RATE_PAUSE_THRESHOLD = 0.10      # 10% -> pause entirely
 COMPLAINT_PAUSE_THRESHOLD = 3           # 3+ spam complaints in 7d -> pause
 
 

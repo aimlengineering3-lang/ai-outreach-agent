@@ -10,6 +10,7 @@ and suppression.py.
 
 import sys
 import time
+import random
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -20,6 +21,8 @@ from contextlib import redirect_stdout
 import json
 from datetime import datetime, timezone
 import httpx
+
+from sqlalchemy.exc import IntegrityError
 
 from src.db.session import SessionLocal, init_db
 from src.db.models import Lead, LeadResearch, Campaign, CampaignTemplate, EmailEvent, SenderAccount
@@ -281,10 +284,14 @@ def research_lead(session, lead: Lead) -> bool:
 # ---------------------------------------------------------------------
 # STAGE 3: QUEUE
 # ---------------------------------------------------------------------
-def queue_researched_leads(session, campaign: Campaign) -> int:
+def queue_researched_leads(session, campaign: Campaign) -> dict:
     """
     Moves RESEARCHED leads matching this campaign's niche into QUEUED,
-    provided they have a valid, non-suppressed email.
+    provided they have a valid, non-suppressed email that isn't shared
+    with a DIFFERENT business — the same email showing up under two
+    different business names is almost always a web developer's or
+    agency's own contact that leaked in as "the business" email, not a
+    real decision-maker at either business.
     """
     candidates = (
         session.query(Lead)
@@ -300,6 +307,21 @@ def queue_researched_leads(session, campaign: Campaign) -> int:
             continue
         if is_suppressed(session, lead.email):
             continue
+
+        shared_with_other_business = (
+            session.query(Lead)
+            .filter(
+                Lead.email == lead.email,
+                Lead.id != lead.id,
+                Lead.business_name != lead.business_name,
+            )
+            .first()
+        )
+        if shared_with_other_business:
+            lead.email_status = "shared_with_other_business"
+            needs_manual_review += 1
+            continue
+
         if not lead.timezone:
             lead.timezone = resolve_timezone(lead.city or "", lead.state or "")
 
@@ -322,7 +344,7 @@ def _variant_for_action(action_type: str, meta_pixel_status: str) -> str:
     return "followup_1" if action_type == "FOLLOWUP1" else "followup_2"
 
 
-def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) -> dict:
+def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None, on_progress=None) -> dict:
     """
     Finds due leads (scheduler), prioritizes follow-ups over brand-new
     sends, sends from the correct sender account (follow-ups always
@@ -457,10 +479,12 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) ->
             fallback_greeting=FALLBACK_GREETING_TEMPLATE.format(business_name=lead.business_name),
         )
         
-        email_body_with_footer = (
-            render_result.rendered_body
-            + "\n\n---\nIf you'd prefer not to hear from us again, just reply with \"unsubscribe\" and we'll stop reaching out."
-        )
+        # No more hardcoded, identical-on-every-email line in the body —
+        # that exact same sentence on hundreds of emails from the same
+        # account is a strong spam-filter fingerprint. The proper
+        # List-Unsubscribe header (set in sender.py below) now carries
+        # this instead, the way real marketing/transactional mail does.
+        email_body_with_footer = render_result.rendered_body
 
         is_first_email = action.action_type == "SENT"
         subject = (
@@ -468,6 +492,33 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) ->
             if is_first_email
             else f"Re: {lead.email_subject or f'Quick note about {lead.business_name}'}"
         )
+
+        # --- Claim this exact action BEFORE sending anything for real ---
+        # This is the actual duplicate-send fix: previously the
+        # EmailEvent row (the thing that marks "this was already handled")
+        # was only written AFTER the real email went out. If two
+        # processes (e.g. the background worker and a manual dashboard
+        # click) both reached this same lead+action in that window, BOTH
+        # sent a real email before either one recorded anything. Writing
+        # — and committing — the event row FIRST closes that window: the
+        # database itself (uq_email_event_lead_campaign_type) refuses a
+        # second row for the same lead+campaign+action type, so the
+        # second process hits IntegrityError here and simply never
+        # calls send_email() at all.
+        event = EmailEvent(
+            lead_id=lead.id, campaign_id=campaign.id, sender_account_id=sender_account.id,
+            event_type=action.action_type, template_used_id=template.id,
+            scheduled_for=datetime.now(timezone.utc), sent_at=datetime.now(timezone.utc),
+            notes=json.dumps({"status": "claimed"}),
+        )
+        session.add(event)
+        try:
+            session.commit()
+        except IntegrityError:
+            # Someone else already claimed this exact action - back off
+            # cleanly, no email sent from this process for this lead.
+            session.rollback()
+            continue
 
         try:
             send_result = send_email(
@@ -480,6 +531,11 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) ->
             )
         except Exception as e:
             print(f"[send-error] Failed to send to {lead.business_name} ({lead.email}): {e}")
+            # The real send failed - release the claim so this lead is
+            # eligible to be retried on the next run instead of being
+            # permanently skipped forever.
+            session.delete(event)
+            session.commit()
             continue
 
         if is_first_email:
@@ -489,17 +545,11 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) ->
             lead.email_message_id = send_result.get("message_id")
             lead.email_thread_id = send_result.get("gmail_thread_id")
 
-        event = EmailEvent(
-            lead_id=lead.id, campaign_id=campaign.id, sender_account_id=sender_account.id,
-            event_type=action.action_type, template_used_id=template.id,
-            scheduled_for=datetime.now(timezone.utc), sent_at=datetime.now(timezone.utc),
-            notes=json.dumps({
-                "test_mode": send_result.get("test_mode"),
-                "message_id": send_result.get("message_id"),
-                "gmail_id": send_result.get("gmail_id"),
-            }),
-        )
-        session.add(event)
+        event.notes = json.dumps({
+            "test_mode": send_result.get("test_mode"),
+            "message_id": send_result.get("message_id"),
+            "gmail_id": send_result.get("gmail_id"),
+        })
 
         if action.action_type == "SENT":
             new_status = LeadStatus.CONTACTED
@@ -517,6 +567,15 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None) ->
         remaining_capacity[sender_account.id] -= 1
         summary["sent"] += 1
         session.commit()
+
+        if on_progress:
+            on_progress(summary["sent"])
+
+        # Human-paced gap between sends. Firing dozens of emails back-
+        # to-back in a few seconds is a strong bot/spam signal to Gmail
+        # and other providers, regardless of how legitimate the content
+        # is — a real person never sends mail this fast.
+        time.sleep(random.uniform(15, 50))
 
     return summary
 
@@ -623,9 +682,10 @@ def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
     else:
         campaign = session.query(Campaign).filter(Campaign.niche == niche, Campaign.status == "ACTIVE").first()
 
-    queued_count = 0
+    queue_result = {"queued": 0, "needs_manual_review": 0}
     if campaign:
-        queued_count = queue_researched_leads(session, campaign)
+        queue_result = queue_researched_leads(session, campaign)
+    queued_count = queue_result["queued"]
 
     total_in_city = session.query(Lead).filter(Lead.niche == niche, Lead.city == city).count()
     elapsed = _format_duration(time.time() - started_at)
@@ -637,11 +697,6 @@ def run_pipeline(niche: str, city: str, state: str, campaign_id: int = None):
     print(f"  Businesses researched     : {researched_count}")
     print(f"  Emails found              : {emails_found}")
     print(f"  No email found            : {no_email_found}  (see Manual Review tab)")
-    if campaign:
-        print(f"  Queued for sending        : {queued_count}  (go to 'Send All Pending Now' to actually send)")
-    else:
-        print(f"  Queued for sending        : 0  (no active campaign for '{niche}' — create one in the Campaigns tab)")
-    print(f"  Total {niche} leads in {city} so far: {total_in_city}")
 
     session.close()
 

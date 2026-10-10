@@ -29,6 +29,22 @@ from src.replies.reply_detector import check_all_active_campaigns_captured
 from src.email.scheduler import get_due_actions
 
 
+@st.cache_data(ttl=60)
+def _get_lead_filter_options():
+    # These 3 dropdown lists barely change minute-to-minute, but were
+    # being re-queried from scratch on every single click anywhere in
+    # the app. Caching for 60s means they're computed once and reused.
+    from src.db.session import SessionLocal as _SL3
+    s = _SL3()
+    try:
+        niches = [n[0] for n in s.query(Lead.niche).distinct().all()]
+        cities = sorted(set(c[0] for c in s.query(Lead.city).filter(Lead.city.isnot(None)).distinct().all()))
+        states = sorted(set(v[0] for v in s.query(Lead.state).filter(Lead.state.isnot(None)).distinct().all()))
+        return niches, cities, states
+    finally:
+        s.close()
+
+
 @st.cache_resource
 def _ensure_db_initialized():
     # init_db() just checks/creates tables — harmless to call more than
@@ -218,7 +234,8 @@ div[data-testid="stDownloadButton"] > button[kind="primary"]:hover {
 }
 
 /* ---- Text inputs / search / selects: strong visible labels + placeholders ---- */
-.stTextInput label, .stSelectbox label, .stNumberInput label, .stCheckbox label p {
+.stTextInput label, .stSelectbox label, .stNumberInput label, .stCheckbox label p,
+.stMultiSelect label {
     color: var(--ink) !important; font-weight: 600 !important; font-size: 13.5px !important;
 }
 .stTextInput input, .stNumberInput input {
@@ -241,6 +258,28 @@ div[data-baseweb="select"] > div {
     border: 1.5px solid var(--border-strong) !important;
     border-radius: 9px !important;
     color: var(--ink) !important;
+}
+
+/* ---- Multiselect "pills" (selected niches/campaigns) ----
+   Default theme color is a red that doesn't appear anywhere else in
+   this app — switch it to the same orange as the primary button, so
+   it reads as "selected", not as an error/warning. */
+[data-baseweb="tag"],
+[data-testid="stMultiSelectTagsContainer"] span[data-tag] {
+    background-color: #F2B705 !important;
+    border-radius: 7px !important;
+}
+[data-baseweb="tag"] span,
+[data-testid="stMultiSelectTagsContainer"] span[data-tag] span {
+    color: var(--ink) !important;
+    font-weight: 600 !important;
+}
+[data-baseweb="tag"] svg,
+[data-testid="stMultiSelectTagsContainer"] span[data-tag] svg {
+    fill: var(--ink) !important;
+}
+[data-testid="stMultiSelectTagsContainer"] span[data-tag] button {
+    background: transparent !important;
 }
 
 /* ---- Dropdown option list (the popup that opens on click) ----
@@ -544,12 +583,18 @@ elif page == "Operations":
             .filter(Lead.email.isnot(None), Lead.created_at >= today_start_fc)
             .count()
         )
-        # Leads with an email that are still waiting to be sent —
-        # RESEARCHED (not yet queued into a campaign) or QUEUED
-        # (queued but not yet sent). This is the real "pending" count.
-        pending_unsent = (
+        # Only QUEUED leads are actually "ready to send" — this now
+        # matches the per-niche "New leads pending" numbers exactly.
+        pending_unsent = session.query(Lead).filter(Lead.status == "QUEUED").count()
+
+        # RESEARCHED leads with an email that never made it to QUEUED
+        # aren't "ready" at all — they were held back on purpose
+        # (invalid email, suppressed, or shared with a different
+        # business). Surfaced separately so it's never confused with
+        # "ready to send".
+        needs_manual_review_count = (
             session.query(Lead)
-            .filter(Lead.status.in_(["RESEARCHED", "QUEUED"]), Lead.email.isnot(None))
+            .filter(Lead.status == "RESEARCHED", Lead.email.isnot(None))
             .count()
         )
 
@@ -559,6 +604,13 @@ elif page == "Operations":
         fc3.metric("Follow-ups due today", total_followups_due)
         fc4.metric("Remaining capacity today", remaining_today)
         fc5.metric("Room for new leads", room_for_new_leads)
+
+        if needs_manual_review_count > 0:
+            st.caption(
+                f"{needs_manual_review_count} researched lead(s) have an email but were held back "
+                "from queuing (invalid, suppressed, or shared with a different business) — "
+                "see the Manual Review section in the Leads tab."
+            )
 
         if room_for_new_leads <= 0:
             st.warning(
@@ -652,7 +704,7 @@ elif page == "Operations":
         from app.run_agent import run_send_cycle as _rsc, get_niche_stats
         from src.email.health_monitor import compute_capacity as _compute_capacity_for_send
 
-        active_accounts_for_send = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
+        active_accounts_for_send = active_accounts  # reuse the list already fetched above in "Today's Forecast"
         remaining_today = sum(
             _compute_capacity_for_send(session, acc).available_capacity
             for acc in active_accounts_for_send
@@ -668,19 +720,25 @@ elif page == "Operations":
         stats = get_niche_stats(session)
         if stats:
             st.markdown("**Status per niche**")
-            st.table([
-                {
-                    "Niche": niche,
-                    "New leads pending": s["new_pending"],
-                    "Follow-ups pending": s["followup_pending"],
-                    "Sent today": s["sent_today"],
-                }
-                for niche, s in sorted(stats.items())
-            ])
+            st.dataframe(
+                [
+                    {
+                        "Niche": niche.title(),
+                        "New leads pending": s["new_pending"],
+                        "Follow-ups pending": s["followup_pending"],
+                        "Sent today": s["sent_today"],
+                    }
+                    for niche, s in sorted(stats.items())
+                ],
+                hide_index=True,
+                use_container_width=True,
+            )
 
-        all_active_for_send = session.query(Campaign).filter(Campaign.status == "ACTIVE").all()
+        all_active_for_send = all_campaigns  # reuse the list already fetched above in "Today's Forecast"
         niches_available = sorted({c.niche for c in all_active_for_send})
 
+        st.markdown("---")
+        st.markdown("**Choose what to send**")
         col_niche, col_campaign = st.columns(2)
         selected_niches = col_niche.multiselect(
             "Niches", niches_available, default=niches_available, key="send_niches"
@@ -730,6 +788,16 @@ elif page == "Operations":
                     totals["sent"] = 0
                     per_niche_sent = {}
 
+                    # Live counter — this one placeholder gets updated in
+                    # place after every single send, no page reload.
+                    progress_box = st.empty()
+                    progress_box.markdown(f"**Sent so far: 0 / {total_requested}**")
+
+                    def _make_progress_callback(base_count):
+                        def _cb(n_this_call):
+                            progress_box.markdown(f"**Sent so far: {base_count + n_this_call} / {total_requested}**")
+                        return _cb
+
                     for niche in niches_in_campaigns:
                         budget = per_niche_limits.get(niche, 0)
                         if budget <= 0:
@@ -742,7 +810,10 @@ elif page == "Operations":
                             camp = send_session.query(Campaign).filter(Campaign.id == cid).first()
                             if not camp:
                                 continue
-                            result = _rsc(send_session, camp, max_sends=left)
+                            result = _rsc(
+                                send_session, camp, max_sends=left,
+                                on_progress=_make_progress_callback(totals["sent"] + sent_here),
+                            )
                             sent_here += max(result.get("sent", 0), 0)
                             for k in skipped_keys:
                                 v = result.get(k, 0)
@@ -751,6 +822,7 @@ elif page == "Operations":
                         per_niche_sent[niche] = sent_here
                         totals["sent"] += sent_here
 
+                    progress_box.markdown(f"**Sent: {totals['sent']} / {total_requested} — done**")
                     send_session.close()
 
                 st.success(f"Sent {totals['sent']} email(s) in total.")
@@ -1065,9 +1137,7 @@ elif page == "Leads":
     )
 
     filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
-    all_niches_in_db = [n[0] for n in session.query(Lead.niche).distinct().all()]
-    all_cities_in_db = sorted(set(c[0] for c in session.query(Lead.city).filter(Lead.city.isnot(None)).distinct().all()))
-    all_states_in_db = sorted(set(s[0] for s in session.query(Lead.state).filter(Lead.state.isnot(None)).distinct().all()))
+    all_niches_in_db, all_cities_in_db, all_states_in_db = _get_lead_filter_options()
 
     niche_filter = filter_col1.selectbox("Filter by niche", ["All niches"] + all_niches_in_db, key="leads_niche_filter")
     city_filter = filter_col2.selectbox("Filter by city", ["All cities"] + all_cities_in_db, key="leads_city_filter")
@@ -1217,7 +1287,13 @@ elif page == "Leads":
     if state_filter != "All states":
         base_query = base_query.filter(Lead.state == state_filter)
 
-    all_matching = base_query.order_by(Lead.created_at.desc()).all()
+    # Was pulling EVERY matching lead (+ its joined research row) with no
+    # cap — this single query took 5.4s. Capping keeps the page fast;
+    # use search/filters above to narrow down instead.
+    LEADS_PAGE_LIMIT = 500
+    all_matching = base_query.order_by(Lead.created_at.desc()).limit(LEADS_PAGE_LIMIT).all()
+    if len(all_matching) == LEADS_PAGE_LIMIT:
+        st.info(f"Showing the {LEADS_PAGE_LIMIT} most recent matching leads. Use search/filters above to narrow it down further.")
 
     def _pixel_status(lead) -> str:
         # meta_pixel is stored as "PRESENT"/"MISSING"/"UNKNOWN", but a

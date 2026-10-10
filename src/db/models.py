@@ -16,7 +16,9 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    UniqueConstraint,
 )
+
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -177,6 +179,17 @@ class EmailEvent(Base):
     lead: Mapped["Lead"] = relationship(back_populates="email_events")
     campaign: Mapped["Campaign"] = relationship(back_populates="email_events")
     template_used: Mapped[Optional["CampaignTemplate"]] = relationship(back_populates="email_events")
+
+    # Prevents a duplicate (lead, campaign, action type) combination from
+    # ever being inserted again — the real fix against two processes
+    # (background worker + manual dashboard click, say) both sending the
+    # same email. On the existing production DB this is applied as a
+    # partial index (scripts/add_duplicate_send_guard.py) so historical
+    # rows are untouched; this __table_args__ makes it part of the
+    # schema for any brand-new database too.
+    __table_args__ = (
+        UniqueConstraint("lead_id", "campaign_id", "event_type", name="uq_email_event_lead_campaign_type"),
+    )
 
     def __repr__(self) -> str:
         return f"<EmailEvent lead_id={self.lead_id} event_type={self.event_type}>"
