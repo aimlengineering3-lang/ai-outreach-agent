@@ -13,6 +13,7 @@ from contextlib import redirect_stdout
 import base64
 from datetime import datetime, timezone
 from googleapiclient.discovery import build
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from src.email.sender import send_email
 from src.core.config import load_settings
@@ -25,6 +26,7 @@ from src.replies.reply_classifier import classify_reply
 from src.replies.night_responder import generate_night_response
 from src.email.sender import send_email
 from src.email.timezone_resolver import is_within_send_window
+from src.email.outlook_client import is_outlook_address, fetch_unread_inbox, mark_read
 
 # A simple, dependency-free safety net: even if the LLM classifier
 # fails or mis-reads a short reply, an explicit unsubscribe-style
@@ -69,40 +71,70 @@ def _extract_body_text(payload: dict) -> str:
     return ""
 
 
-def check_for_replies(session: Session, campaign: Campaign, sender_account_email: str = None, max_results: int = 20) -> dict:
+def _fetch_unread_messages(sender_account_email: str | None, max_results: int):
     """
-    Fetches recent unread messages from the sender's inbox, matches each
-    to a Lead by sender email, classifies the reply, logs a REPLY
-    EmailEvent, and transitions the lead to STOPPED (per the requirement
-    that ANY reply immediately halts automated follow-ups).
+    Returns (messages, mark_read) for the account's provider. Every message
+    is a plain dict {"id", "from_email", "body_text"}, so the reply logic
+    doesn't care whether it came from Gmail or Outlook.
     """
+    if sender_account_email and is_outlook_address(sender_account_email):
+        messages = [
+            {"id": m["id"], "from_email": m["from_email"], "body_text": m["body_text"]}
+            for m in fetch_unread_inbox(sender_account_email, max(max_results, 50))
+        ]
+        return messages, lambda message_id: mark_read(sender_account_email, message_id)
+
     creds = _get_credentials(sender_account_email)
     service = build("gmail", "v1", credentials=creds)
-
-    summary = {"checked": 0, "matched_replies": 0, "unmatched": 0, "matches": []}
-
     results = service.users().messages().list(
-        userId="me", labelIds=["INBOX", "UNREAD"], maxResults=max_results
+        userId="me", labelIds=["INBOX", "UNREAD"], maxResults=max(max_results, 50),
+        q="-from:mailer-daemon -from:postmaster",
     ).execute()
-    messages = results.get("messages", [])
 
-    for msg_ref in messages:
-        summary["checked"] += 1
+    messages = []
+    for msg_ref in results.get("messages", []):
         message = service.users().messages().get(
             userId="me", id=msg_ref["id"], format="full"
         ).execute()
+        messages.append({
+            "id": msg_ref["id"],
+            "from_email": _extract_sender_email(message["payload"]["headers"]),
+            "body_text": _extract_body_text(message["payload"]),
+        })
 
-        headers = message["payload"]["headers"]
-        sender_email = _extract_sender_email(headers)
+    def mark_gmail_read(message_id: str) -> None:
+        service.users().messages().modify(
+            userId="me", id=message_id, body={"removeLabelIds": ["UNREAD"]}
+        ).execute()
+
+    return messages, mark_gmail_read
+
+
+def check_for_replies(session: Session, campaign: Campaign, sender_account_email: str = None, max_results: int = 20) -> dict:
+    """
+    Fetches recent unread messages from the sender's inbox (Gmail or
+    Outlook), matches each to a Lead by sender email, classifies the
+    reply, logs a REPLY EmailEvent, and transitions the lead to STOPPED
+    (per the requirement that ANY reply immediately halts automated
+    follow-ups).
+    """
+    messages, mark_message_read = _fetch_unread_messages(sender_account_email, max_results)
+
+    summary = {"checked": 0, "matched_replies": 0, "unmatched": 0, "matches": []}
+
+    for message in messages:
+        summary["checked"] += 1
+
+        sender_email = message["from_email"]
         if not sender_email:
             continue
 
-        lead = session.query(Lead).filter(Lead.email == sender_email).first()
+        lead = session.query(Lead).filter(func.lower(Lead.email) == sender_email.lower()).first()
         if not lead:
             summary["unmatched"] += 1
             continue
 
-        body_text = _extract_body_text(message["payload"])
+        body_text = message["body_text"]
         category = classify_reply(body_text)
 
         if category != "unsubscribe" and UNSUBSCRIBE_FALLBACK_PATTERN.search(body_text):
@@ -138,7 +170,7 @@ def check_for_replies(session: Session, campaign: Campaign, sender_account_email
         except InvalidTransitionError:
             pass
 
-                # If it's currently your quiet hours (e.g. late at night, when
+        # If it's currently your quiet hours (e.g. late at night, when
         # you're asleep), send a brief acknowledgement so the prospect
         # isn't left waiting with no response until morning.
         import pytz
@@ -180,9 +212,7 @@ def check_for_replies(session: Session, campaign: Campaign, sender_account_email
                 pass  # Don't let a failed acknowledgement break reply detection
 
         # Mark as read so we don't reprocess it next run
-        service.users().messages().modify(
-            userId="me", id=msg_ref["id"], body={"removeLabelIds": ["UNREAD"]}
-        ).execute()
+        mark_message_read(message["id"])
 
         summary["matched_replies"] += 1
         summary["matches"].append({"business_name": lead.business_name, "category": category})

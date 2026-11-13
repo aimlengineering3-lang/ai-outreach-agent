@@ -7,6 +7,7 @@ independently of "what stage is this lead at".
 """
 
 from datetime import datetime, timedelta
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.db.models import SuppressionList, Lead
@@ -14,22 +15,33 @@ from src.db.models import SuppressionList, Lead
 COOLDOWN_DAYS = 90
 
 
+def normalize_email(email: str) -> str:
+    """Ek hi standard form: lowercase + trimmed. Suppression hamesha isi form mein compare hoti hai."""
+    return (email or "").strip().lower()
+
+
 def is_suppressed(session: Session, email: str) -> bool:
     """
     Returns True if this email must NOT be contacted — either a
     permanent suppression (unsubscribe/manual/hard-bounce) or a
     still-active cooldown period.
+
+    Matching case-insensitive hai (Info@X.com == info@X.com), aur campaign
+    se koi taluq nahi — suppression GLOBAL hai, har campaign pe lagti hai.
     """
+    key = normalize_email(email)
+    if not key:
+        return False
+
     records = (
         session.query(SuppressionList)
-        .filter(SuppressionList.email == email)
+        .filter(func.lower(func.trim(SuppressionList.email)) == key)
         .all()
     )
 
     for record in records:
         if record.permanent:
             return True
-        # Non-permanent (cooldown) record: still active if within window
         cooldown_expires = record.added_at + timedelta(days=COOLDOWN_DAYS)
         if datetime.utcnow() < cooldown_expires:
             return True
@@ -44,23 +56,50 @@ def add_suppression(
     permanent: bool,
 ) -> SuppressionList:
     """
-    Adds a suppression record. Callers decide `permanent` based on the
-    reason — this function does NOT infer it, to avoid a bug silently
-    changing compliance behavior (e.g. treating a bounce as permanent
-    when it should be a soft/temporary case, or vice versa).
+    Adds a suppression record (idempotent: agar is email ki permanent
+    record pehle se hai to dobara row nahi banti).
 
-    Expected reason -> permanent mapping (enforced by caller, not here):
-        "unsubscribe"   -> True
-        "manual"        -> True
-        "bounce_hard"   -> True
-        (a normal completed campaign cooldown uses this table implicitly
-         via email_events + 90-day check, not a suppression row at all —
-         see is_eligible_for_recontact below)
+    Expected reason -> permanent mapping (enforced by caller):
+        "unsubscribe" -> True, "manual" -> True, "bounce_hard" -> True
     """
-    record = SuppressionList(email=email, reason=reason, permanent=permanent)
+    key = normalize_email(email)
+
+    if permanent:
+        existing = (
+            session.query(SuppressionList)
+            .filter(func.lower(func.trim(SuppressionList.email)) == key,
+                    SuppressionList.permanent.is_(True))
+            .first()
+        )
+        if existing:
+            return existing
+
+    record = SuppressionList(email=key, reason=reason, permanent=permanent)
     session.add(record)
     session.commit()
     return record
+
+
+def suppress_everywhere(session: Session, email: str, reason: str = "bounce_hard") -> int:
+    """
+    Global kill-switch: email ko permanent suppress karta hai AUR is email
+    wale har Lead row (kisi bhi campaign/state ka) ko SUPPRESSED mark karta hai.
+    Returns: kitne lead rows update hue.
+    """
+    key = normalize_email(email)
+    if not key:
+        return 0
+
+    add_suppression(session, key, reason=reason, permanent=True)
+
+    updated = 0
+    leads = session.query(Lead).filter(func.lower(func.trim(Lead.email)) == key).all()
+    for lead in leads:
+        if lead.status not in ("SUPPRESSED", "REPLIED", "STOPPED"):
+            lead.status = "SUPPRESSED"
+            updated += 1
+    session.commit()
+    return updated
 
 
 def is_eligible_for_recontact(session: Session, lead: Lead) -> bool:

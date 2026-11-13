@@ -45,6 +45,7 @@ from src.email.scheduler import get_due_actions
 from src.email.timezone_resolver import resolve_timezone, is_within_send_window
 from src.email.health_monitor import compute_capacity
 from src.email.sender import send_email
+from src.email.outlook_client import send_mime_via_graph, OutlookQuotaExceededError
 
 
 FALLBACK_GREETING_TEMPLATE = "Hi {business_name} team,"
@@ -358,7 +359,26 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None, on
     summary = {"sent": 0, "skipped_no_capacity": 0, "skipped_outside_window": 0,
                "skipped_no_template": 0, "skipped_suppressed": 0}
 
-    active_accounts = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
+    # Har send se PEHLE bounce notices scan karo, taake koi purani bounced
+    # email (kisi bhi campaign ki) is round mein dobara na jaye.
+    try:
+        from src.replies.bounce_detector import check_all_accounts_for_bounces
+        check_all_accounts_for_bounces(session)
+    except Exception as exc:
+        print(f"[send_cycle] pre-send bounce check failed (send jari): {exc}")
+
+    active_accounts = (
+        session.query(SenderAccount)
+        .filter(SenderAccount.status == "ACTIVE")
+        # No ORDER BY here before meant the database could return accounts
+        # in ANY order — which is exactly why the brand-new Outlook
+        # account got used first instead of as overflow. Ordering by id
+        # (= oldest-added first, since ids are assigned in creation
+        # order) guarantees the original Gmail accounts are always tried
+        # before a newly added account, every time.
+        .order_by(SenderAccount.id.asc())
+        .all()
+    )
     if not active_accounts:
         summary["skipped_no_capacity"] = -1
         return summary
@@ -393,6 +413,11 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None, on
             # get_due_actions() only filters by status, not niche — without
             # this check, a Plumbing campaign send would also pick up
             # queued HVAC/Roofing/etc. leads.
+            continue
+        if campaign.target_state and lead.state != campaign.target_state:
+            # Same idea for a state-scoped campaign (e.g. a Texas-only
+            # resend round) — belt-and-suspenders in case this ever
+            # runs against a stale/pre-filtered due_actions list.
             continue
         if is_suppressed(session, lead.email):
             summary["skipped_suppressed"] += 1
@@ -529,6 +554,15 @@ def run_send_cycle(session, campaign: Campaign, max_sends: int | None = None, on
                 in_reply_to_message_id=None if is_first_email else lead.email_message_id,
                 thread_id=None if is_first_email else lead.email_thread_id,
             )
+        except OutlookQuotaExceededError as e:
+            print(f"[quota-exceeded] {sender_account.email} is out of quota for today — "
+                  f"skipping it for the rest of this run. ({e})")
+            session.delete(event)
+            session.commit()
+            # Don't hammer this account for every remaining lead — treat it
+            # as having zero capacity for the rest of this cycle.
+            remaining_capacity[sender_account.id] = 0
+            continue
         except Exception as e:
             print(f"[send-error] Failed to send to {lead.business_name} ({lead.email}): {e}")
             # The real send failed - release the claim so this lead is

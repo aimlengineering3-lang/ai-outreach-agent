@@ -4,7 +4,7 @@ to our SQLite database.
 """
 
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
@@ -36,15 +36,29 @@ else:
         echo=False,
         pool_pre_ping=True,
         pool_recycle=300,
-        # Without a timeout, a "zombie" connection (looks alive locally
-        # but the server or a router/NAT in between has silently
-        # dropped it) can make a query wait forever with no error and
-        # no CPU usage — exactly the symptom of a stuck-but-idle
-        # dashboard. This forces any single query to fail after 15s
-        # instead of hanging indefinitely, so the app can recover
-        # (get a fresh connection) instead of freezing.
-        connect_args={"connect_timeout": 10, "options": "-c statement_timeout=15000"},
+        connect_args={
+            "connect_timeout": 10,
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 3,
+        },
     )
+
+    # The "-c statement_timeout=..." startup option above was NOT
+    # reliably taking effect — Supabase's pooler can silently drop
+    # startup "options" depending on pooling mode, which is exactly
+    # why queries were hanging forever instead of erroring after 15s.
+    # Setting it explicitly via a real SQL command on every new
+    # physical connection guarantees it actually applies, regardless
+    # of pooler behavior: now any single query that doesn't get a
+    # response within 10s gets killed BY POSTGRES ITSELF and raises a
+    # clear error in Python — never another silent infinite hang.
+    @event.listens_for(engine, "connect")
+    def _force_statement_timeout(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("SET statement_timeout = 10000")
+        cursor.close()
 
 # expire_on_commit=False: by default, every session.commit() marks all
 # already-loaded ORM objects as "expired," so the next attribute access

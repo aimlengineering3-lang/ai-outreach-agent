@@ -16,6 +16,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session, load_only
 
+from sqlalchemy import func
 from src.db.models import Lead, Campaign, EmailEvent, SuppressionList
 
 
@@ -33,13 +34,21 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
     """
     due: list[ScheduledAction] = []
 
+    base_filters = [
+        Lead.status.in_(["QUEUED", "CONTACTED", "NO_REPLY"]),
+        Lead.niche == campaign.niche,
+    ]
+    # target_state is NULL for every campaign except deliberately
+    # state-scoped ones (e.g. a Texas-only resend campaign) — when
+    # it's set, this campaign must NEVER see leads from any other
+    # state, no matter what gets queued later by future pipeline runs.
+    if campaign.target_state:
+        base_filters.append(Lead.state == campaign.target_state)
+
     leads = (
         session.query(Lead)
-        .options(load_only(Lead.id, Lead.email, Lead.status, Lead.created_at))
-        .filter(
-            Lead.status.in_(["QUEUED", "CONTACTED", "NO_REPLY"]),
-            Lead.niche == campaign.niche,
-        )
+        .options(load_only(Lead.id, Lead.email, Lead.status, Lead.created_at, Lead.state))
+        .filter(*base_filters)
         .order_by(Lead.created_at.asc())
         .all()
     )
@@ -47,7 +56,7 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
         return due
 
     lead_ids = [lead.id for lead in leads]
-    lead_emails = {lead.email for lead in leads if lead.email}
+    lead_emails = {lead.email.strip().lower() for lead in leads if lead.email}
 
     # Bulk-load suppression records for all relevant emails in one query,
     # instead of one query per lead.
@@ -55,17 +64,17 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
     if lead_emails:
         suppressed_rows = (
             session.query(SuppressionList)
-            .filter(SuppressionList.email.in_(lead_emails))
+            .filter(func.lower(func.trim(SuppressionList.email)).in_(lead_emails))
             .all()
         )
         for row in suppressed_rows:
             if row.permanent:
-                suppressed_emails.add(row.email)
+                suppressed_emails.add(row.email.strip().lower())
             else:
                 from datetime import timedelta
                 cooldown_expires = row.added_at + timedelta(days=90)
                 if datetime.utcnow() < cooldown_expires:
-                    suppressed_emails.add(row.email)
+                    suppressed_emails.add(row.email.strip().lower())
 
     # Bulk-load the most recent EmailEvent per lead in one query, instead
     # of one query per lead.
@@ -82,7 +91,7 @@ def get_due_actions(session: Session, campaign: Campaign) -> list[ScheduledActio
             latest_event_by_lead[event.lead_id] = event
 
     for lead in leads:
-        if not lead.email or lead.email in suppressed_emails:
+        if not lead.email or lead.email.strip().lower() in suppressed_emails:
             continue
 
         if lead.status == "QUEUED":

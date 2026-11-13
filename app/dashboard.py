@@ -571,9 +571,11 @@ elif page == "Operations":
             total_followups_due += sum(1 for a in due if a.action_type in ("FOLLOWUP1", "FOLLOWUP2"))
 
         active_accounts = session.query(SenderAccount).filter(SenderAccount.status == "ACTIVE").all()
-        total_capacity = sum(acc.daily_limit for acc in active_accounts)
-        already_sent = sum(acc.sent_today for acc in active_accounts)
-        remaining_today = max(0, total_capacity - already_sent)
+        # Asli capacity (throttle ke saath), bilkul Send All Pending wale hisse jaisi.
+        remaining_today = sum(
+            compute_capacity(session, acc).available_capacity for acc in active_accounts
+        )
+        session.commit()  # compute_capacity() daily reset kar sakta hai
         room_for_new_leads = max(0, remaining_today - total_followups_due)
 
         from datetime import date as _date, datetime as _dtt
@@ -1326,7 +1328,7 @@ elif page == "Sender Accounts":
         with st.form("add_sender_form", clear_on_submit=True):
             col1, col2, col3 = st.columns(3)
             acc_email = col1.text_input("Email address")
-            provider = col2.selectbox("Provider", ["gmail", "proton"])
+            provider = col2.selectbox("Provider", ["gmail", "outlook", "proton"])
             daily_limit = col3.number_input("Daily limit", min_value=1, value=50)
             submitted = st.form_submit_button("Add Account", type="primary")
             if submitted:
@@ -1356,7 +1358,7 @@ elif page == "Sender Accounts":
             col3.write(f"Available today: **{capacity.available_capacity}** / {acc.daily_limit}")
             st.markdown(
                 f'<p style="color:#2A3142;font-weight:500;font-size:14px;">'
-                f"Sent today: {acc.sent_today} · Bounces (7d): {acc.bounce_count_7d} · "
+                f"Sent today: {acc.sent_today} · Bounces ({capacity.bounce_window_days}d): {acc.bounce_count_7d} · "
                 f"Complaints (7d): {acc.spam_complaint_count_7d} · Reason: {capacity.reason}"
                 '</p>',
                 unsafe_allow_html=True,
@@ -1410,4 +1412,7 @@ elif page == "Suppression List":
         ]
         st.dataframe(table_rows, use_container_width=True, hide_index=True)
 
-session.close()
+    try:
+        session.close()
+    except Exception:
+        pass  # connection already dropped (e.g. idle Supabase pooler) — nothing to clean up

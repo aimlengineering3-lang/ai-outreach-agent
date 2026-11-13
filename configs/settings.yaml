@@ -1,6 +1,6 @@
 sending_window:
   end_hour: 22
-  start_hour: 9
+  start_hour: 8
 target_cities:
 - city: Apalachicola
   state: FL

@@ -16,6 +16,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
+from src.email.outlook_client import is_outlook_address, send_mime_via_graph
 
 load_dotenv()
 
@@ -110,8 +111,9 @@ def send_email(
     FIRST email) makes this send land as a reply in that same thread
     instead of arriving as a brand-new, unrelated email.
     """
-    creds = _get_credentials(sender_address)
-    service = build("gmail", "v1", credentials=creds)
+    use_outlook = is_outlook_address(sender_address)
+    creds = None if use_outlook else _get_credentials(sender_address)
+    service = None if use_outlook else build("gmail", "v1", credentials=creds)
 
     actual_recipient = to_address
     if is_test_mode():
@@ -119,9 +121,9 @@ def send_email(
         subject = f"[TEST MODE - would send to {to_address}] {subject}"
 
     message = MIMEText(body)
-    message["to"] = actual_recipient
-    message["from"] = sender_address
-    message["subject"] = subject
+    message["To"] = actual_recipient
+    message["From"] = sender_address
+    message["Subject"] = subject
     # Real List-Unsubscribe header (RFC 2369) — Gmail/Outlook/Yahoo show
     # a built-in "Unsubscribe" link next to the sender's name when this
     # is present, and its absence (combined with bulk-ish sending
@@ -145,6 +147,19 @@ def send_email(
         message["In-Reply-To"] = in_reply_to_message_id
         message["References"] = in_reply_to_message_id
 
+    if use_outlook:
+        # Graph sendMail returns 202 with no body, so there is no
+        # provider message/thread id to hand back. Outlook threads by
+        # the In-Reply-To/References headers set above.
+        send_mime_via_graph(sender_address, message.as_bytes())
+        return {
+            "message_id": new_message_id,
+            "gmail_id": None,
+            "gmail_thread_id": None,
+            "actual_recipient": actual_recipient,
+            "test_mode": is_test_mode(),
+        }
+
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
     send_body = {"raw": raw}
@@ -157,9 +172,34 @@ def send_email(
         userId="me", body=send_body
     ).execute()
 
+    # Gmail's own sending infrastructure can silently replace our custom
+    # Message-ID with its own auto-generated one (format
+    # "<...@mail.gmail.com>") — confirmed happening in production for
+    # this account. If we kept trusting new_message_id, every future
+    # follow-up's In-Reply-To/References header would point at a
+    # Message-ID that was never actually used, breaking thread
+    # continuity. Reading the real header back from Gmail after sending
+    # guarantees followups thread correctly either way.
+    real_message_id = new_message_id
+    try:
+        sent_message = service.users().messages().get(
+            userId="me", id=result.get("id"), format="metadata",
+            metadataHeaders=["Message-ID"],
+        ).execute()
+        headers = sent_message.get("payload", {}).get("headers", [])
+        header_value = next(
+            (h["value"] for h in headers if h["name"].lower() == "message-id"), None
+        )
+        if header_value:
+            real_message_id = header_value
+    except Exception:
+        # If this lookup fails for any reason, fall back to our own
+        # fabricated id rather than breaking a send that already succeeded.
+        pass
+
     return {
-        "message_id": new_message_id,       # RFC-822 header, for future In-Reply-To/References
-        "gmail_id": result.get("id"),         # Gmail's own internal message id (old "message_id" meaning)
+        "message_id": real_message_id,       # the Message-ID Gmail actually used
+        "gmail_id": result.get("id"),         # Gmail's own internal message id
         "gmail_thread_id": result.get("threadId"),
         "actual_recipient": actual_recipient,
         "test_mode": is_test_mode(),

@@ -123,6 +123,13 @@ class Campaign(Base):
     followup2_delay_days: Mapped[int] = mapped_column(Integer, default=1)
     followup2_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    # NULL (default) = campaign is niche-wide across ALL states, exactly
+    # like before this column existed (Testing, future HVAC campaigns,
+    # etc. are unaffected). Set to a 2-letter state code (e.g. "TX") to
+    # restrict a campaign to ONLY leads from that state — used for
+    # one-off resend campaigns so they can never touch other states'
+    # leads, no matter when a pipeline run adds new QUEUED leads.
+    target_state: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     templates: Mapped[List["CampaignTemplate"]] = relationship(
         back_populates="campaign", cascade="all, delete-orphan"
