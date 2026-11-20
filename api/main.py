@@ -27,7 +27,7 @@ app = FastAPI(title="AI Outreach Agent API")
 # Local Next.js dev server runs on localhost:3000 by default.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://ai-outreach-agent-seven.vercel.app"],
     allow_origin_regex=r"https://.*\.trycloudflare\.com",
     allow_credentials=True,
     allow_methods=["*"],
