@@ -242,6 +242,30 @@ target_cities:
   state: TX
 - city: Texarkana
   state: TX
+- city: Fernandina Beach
+  state: FL
+- city: Fort Lauderdale
+  state: FL
+- city: Fort Myers
+  state: FL
+- city: Fort Pierce
+  state: FL
+- city: Fort Walton Beach
+  state: FL
+- city: Gainesville
+  state: FL
+- city: Hallandale Beach
+  state: FL
+- city: Hialeah
+  state: FL
+- city: Hollywood
+  state: FL
+- city: Homestead
+  state: FL
+- city: Jacksonville
+  state: FL
+- city: Key West
+  state: FL
 your_quiet_hours:
   end_hour: 8
   start_hour: 23

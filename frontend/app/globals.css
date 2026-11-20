@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-page font-sans text-[15px] leading-6 text-ink antialiased;
+    font-feature-settings: "tnum" 1;
+  }
+  h1, h2, h3 {
+    @apply text-ink;
+  }
+  ::selection {
+    background: #F9D2C3;
+  }
+  :focus-visible {
+    outline: 2px solid #E85D2F;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Tabular figures so counters don't jitter while numbers change. */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
